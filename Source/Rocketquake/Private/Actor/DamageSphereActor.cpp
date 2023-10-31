@@ -3,6 +3,8 @@
 
 #include "Actor/DamageSphereActor.h"
 
+#include "Kismet/GameplayStatics.h"
+
 // Sets default values
 ADamageSphereActor::ADamageSphereActor()
 {
@@ -15,13 +17,15 @@ ADamageSphereActor::ADamageSphereActor()
 void ADamageSphereActor::BeginPlay()
 {
 	Super::BeginPlay();
-	
+
+	DrawDebugSphere(GetWorld(), GetActorLocation(), Radius, 12, Color, true);
 }
 
 // Called every frame
 void ADamageSphereActor::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-
+    
+    UGameplayStatics::ApplyRadialDamage(GetWorld(), Damage, GetActorLocation(), Radius, DamageType, {}, this, nullptr, bDoFullDamage);
 }
 

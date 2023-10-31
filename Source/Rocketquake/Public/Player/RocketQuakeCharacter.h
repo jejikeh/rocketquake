@@ -6,6 +6,7 @@
 #include "GameFramework/Character.h"
 #include "RocketQuakeCharacter.generated.h"
 
+class ARocketquakeWeapon;
 struct FInputActionValue;
 
 UCLASS()
@@ -69,6 +70,12 @@ private:
     UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Movement", meta = (ClampMin = "1.0", ClampMax = "10.0", AllowPrivateAccess = "true"))
     float SprintModifier = 1.5f;
 
+    UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Animations", meta = (AllowPrivateAccess = "true"))
+    UAnimMontage* DeathAnimMontage;
+
+    UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Weapon", meta = (AllowPrivateAccess = "true"))
+    TSubclassOf<ARocketquakeWeapon> WeaponClass;
+
     float BaseWalkSpeed;
 
     void MoveForwardCharacter(const FInputActionValue& Value);
@@ -82,11 +89,21 @@ private:
     void Server_SetSprint_Implementation(bool Sprinting);
     
     UFUNCTION(Server, Reliable)
-    void SetMovingForward(bool IsMovingForward);
-    void SetMovingForward_Implementation(bool IsMovingForward);
+    void Server_SetMovingForward(bool IsMovingForward);
+    void Server_SetMovingForward_Implementation(bool IsMovingForward);
 
     UFUNCTION()
     void OnRep_ToggleSprint();
+
+    UFUNCTION(NetMulticast, Reliable)
+    void Multicast_OnDeath();
+    void Multicast_OnDeath_Implementation();
+
+    UFUNCTION(Client, Reliable)
+    void Client_OnHealthChanged();
+    void Client_OnHealthChanged_Implementation();
+
+    void SpawnWeapon();
 
     void HandleStartSprintAction();
 

@@ -12,6 +12,7 @@
 #include "Net/UnrealNetwork.h"
 #include "Engine/DamageEvents.h"
 #include "Player/RocketquakePlayerController.h"
+#include "Weapon/RocketquakeWeapon.h"
 
 ARocketQuakeCharacter::ARocketQuakeCharacter(const FObjectInitializer &ObjectInitializer)
     : Super(ObjectInitializer.SetDefaultSubobjectClass<URocketquakeMovementComponent>(CharacterMovementComponentName))
@@ -39,6 +40,10 @@ void ARocketQuakeCharacter::BeginPlay()
 
     BaseWalkSpeed = GetCharacterMovement()->MaxWalkSpeed;
 
+    HealthComponent->OnDeath.AddDynamic(this, &ARocketQuakeCharacter::Multicast_OnDeath);
+    HealthComponent->OnHealthChanged.AddDynamic(this, &ARocketQuakeCharacter::Client_OnHealthChanged);
+    Client_OnHealthChanged();
+
     if (const auto PlayerController = Cast<ARocketquakePlayerController>(GetController()))
     {
         if (const auto Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer()))
@@ -46,15 +51,13 @@ void ARocketQuakeCharacter::BeginPlay()
             Subsystem->AddMappingContext(DefaultMappingContext, 0);
         }
     }
+
+    SpawnWeapon();
 }
 
 void ARocketQuakeCharacter::Tick(float DeltaTime)
 {
     Super::Tick(DeltaTime);
-
-    TextRenderComponent->SetText(FText::FromString(FString::Printf(TEXT("Health: %f"), HealthComponent->GetHealth())));
-
-    TakeDamage(0.1f, FDamageEvent{}, Controller, this);
 }
 
 void ARocketQuakeCharacter::SetupPlayerInputComponent(UInputComponent *PlayerInputComponent)
@@ -88,7 +91,7 @@ float ARocketQuakeCharacter::GetMovementDirection() const
 void ARocketQuakeCharacter::MoveForwardCharacter(const FInputActionValue &Value)
 {
     const auto MovementVector = Value.Get<FVector2D>();
-    SetMovingForward(MovementVector.X < 0.0f);
+    Server_SetMovingForward(MovementVector.X < 0.0f);
     AddMovementInput(GetActorForwardVector(), -MovementVector.X);
 }
 
@@ -105,7 +108,7 @@ void ARocketQuakeCharacter::LookCharacter(const FInputActionValue &Value)
     AddControllerPitchInput(LookVector.Y);
 }
 
-void ARocketQuakeCharacter::SetMovingForward_Implementation(bool IsMovingForward)
+void ARocketQuakeCharacter::Server_SetMovingForward_Implementation(bool IsMovingForward)
 {
     bIsMovingForward = IsMovingForward;
 }
@@ -120,6 +123,35 @@ void ARocketQuakeCharacter::OnRep_ToggleSprint()
     {
         GetCharacterMovement()->MaxWalkSpeed = BaseWalkSpeed;
     }
+}
+
+void ARocketQuakeCharacter::Multicast_OnDeath_Implementation()
+{
+    PlayAnimMontage(DeathAnimMontage);
+
+    GetCharacterMovement()->DisableMovement();
+    SetLifeSpan(5.0f);
+    if (Controller)
+    {
+        Controller->ChangeState(NAME_Spectating);
+    }
+}
+
+void ARocketQuakeCharacter::Client_OnHealthChanged_Implementation()
+{
+    TextRenderComponent->SetText(FText::FromString(FString::Printf(TEXT("Health: %f"), HealthComponent->GetHealth())));
+}
+
+void ARocketQuakeCharacter::SpawnWeapon()
+{
+    if (!WeaponClass->IsValidLowLevelFast())
+    {
+        return;
+    }
+    
+    const auto Weapon = GetWorld()->SpawnActor<ARocketquakeWeapon>(WeaponClass);
+    Weapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, TEXT("WeaponSocket"));
+    Weapon->SetOwner(this);
 }
 
 void ARocketQuakeCharacter::HandleStartSprintAction()
