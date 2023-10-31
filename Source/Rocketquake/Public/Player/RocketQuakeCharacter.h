@@ -6,26 +6,89 @@
 #include "GameFramework/Character.h"
 #include "RocketQuakeCharacter.generated.h"
 
+struct FInputActionValue;
+
 UCLASS()
 class ROCKETQUAKE_API ARocketQuakeCharacter : public ACharacter
 {
-	GENERATED_BODY()
+    GENERATED_BODY()
 
 public:
-	// Sets default values for this character's properties
-	ARocketQuakeCharacter();
+    ARocketQuakeCharacter(const FObjectInitializer &ObjectInitializer);
+    
+    virtual void Tick(float DeltaTime) override;
+    
+    virtual void SetupPlayerInputComponent(UInputComponent *PlayerInputComponent) override;
+
+    UFUNCTION(BlueprintCallable, Category = "Movement")
+    bool IsSprinting() const;
+
+    UFUNCTION(BlueprintCallable, Category = "Movement")
+    float GetMovementDirection() const;
 
 protected:
-	// Called when the game starts or when spawned
-	virtual void BeginPlay() override;
+    virtual void BeginPlay() override;
 
-public:	
-	// Called every frame
-	virtual void Tick(float DeltaTime) override;
+    UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Camera")
+    class UCameraComponent* CameraComponent;
 
-	// Called to bind functionality to input
-	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+    UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Camera")
+    class USpringArmComponent* SpringArmComponent;
 
-	
-	
+    UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Movement")
+    class UHealthComponent* HealthComponent;
+
+    UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Movement")
+    class UTextRenderComponent* TextRenderComponent;
+
+private:
+    UPROPERTY(ReplicatedUsing = OnRep_ToggleSprint)
+    bool bIsSprinting;
+
+    UPROPERTY(Replicated)
+    bool bIsMovingForward;
+    
+    UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Input", meta=(AllowPrivateAccess = "true"))
+    class UInputMappingContext* DefaultMappingContext;
+    
+    UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Input", meta=(AllowPrivateAccess = "true"))
+    class UInputAction* MoveForwardAction;
+    
+    UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Input", meta=(AllowPrivateAccess = "true"))
+    class UInputAction* MoveRightAction;
+
+    UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Input", meta=(AllowPrivateAccess = "true"))
+    class UInputAction* LookAction;
+
+    UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Input", meta=(AllowPrivateAccess = "true"))
+    class UInputAction* JumpAction;
+
+    UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Input", meta=(AllowPrivateAccess = "true"))
+    class UInputAction* SprintAction;
+    
+    UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Movement", meta = (ClampMin = "1.0", ClampMax = "10.0", AllowPrivateAccess = "true"))
+    float SprintModifier = 1.5f;
+
+    float BaseWalkSpeed;
+
+    void MoveForwardCharacter(const FInputActionValue& Value);
+
+    void MoveRightCharacter(const FInputActionValue& Value);
+    
+    void LookCharacter(const FInputActionValue& Value);
+    
+    UFUNCTION(Server, Reliable)
+    void Server_SetSprint(bool Sprinting);
+    void Server_SetSprint_Implementation(bool Sprinting);
+    
+    UFUNCTION(Server, Reliable)
+    void SetMovingForward(bool IsMovingForward);
+    void SetMovingForward_Implementation(bool IsMovingForward);
+
+    UFUNCTION()
+    void OnRep_ToggleSprint();
+
+    void HandleStartSprintAction();
+
+    void HandleStopSprintAction();
 };
