@@ -5,14 +5,14 @@
 #include "Camera/CameraComponent.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
+#include "Components/CapsuleComponent.h"
 #include "Components/HealthComponent.h"
 #include "Components/RocketquakeMovementComponent.h"
 #include "Components/TextRenderComponent.h"
+#include "Components/WeaponComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "Net/UnrealNetwork.h"
-#include "Engine/DamageEvents.h"
 #include "Player/RocketquakePlayerController.h"
-#include "Weapon/RocketquakeWeapon.h"
 
 ARocketQuakeCharacter::ARocketQuakeCharacter(const FObjectInitializer &ObjectInitializer)
     : Super(ObjectInitializer.SetDefaultSubobjectClass<URocketquakeMovementComponent>(CharacterMovementComponentName))
@@ -20,11 +20,11 @@ ARocketQuakeCharacter::ARocketQuakeCharacter(const FObjectInitializer &ObjectIni
     PrimaryActorTick.bCanEverTick = true;
 
     SpringArmComponent = CreateDefaultSubobject<USpringArmComponent>("SpringArmComponent");
-    SpringArmComponent->SetupAttachment(GetRootComponent());
+    SpringArmComponent->SetupAttachment(GetMesh(), "CameraSocket");
     SpringArmComponent->bUsePawnControlRotation = true;
 
     CameraComponent = CreateDefaultSubobject<UCameraComponent>("CameraComponent");
-    CameraComponent->SetupAttachment(SpringArmComponent);
+    CameraComponent->SetupAttachment(SpringArmComponent, USpringArmComponent::SocketName);
 
     HealthComponent = CreateDefaultSubobject<UHealthComponent>("HealthComponent");
     HealthComponent->SetIsReplicated(true);
@@ -32,6 +32,8 @@ ARocketQuakeCharacter::ARocketQuakeCharacter(const FObjectInitializer &ObjectIni
 
     TextRenderComponent = CreateDefaultSubobject<UTextRenderComponent>("TextRenderComponent");
     TextRenderComponent->SetupAttachment(GetRootComponent());
+
+    WeaponComponent = CreateDefaultSubobject<UWeaponComponent>("WeaponComponent");
 }
 
 void ARocketQuakeCharacter::BeginPlay()
@@ -44,6 +46,7 @@ void ARocketQuakeCharacter::BeginPlay()
     HealthComponent->OnHealthChanged.AddDynamic(this, &ARocketQuakeCharacter::Client_OnHealthChanged);
     Client_OnHealthChanged();
 
+
     if (const auto PlayerController = Cast<ARocketquakePlayerController>(GetController()))
     {
         if (const auto Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer()))
@@ -51,8 +54,6 @@ void ARocketQuakeCharacter::BeginPlay()
             Subsystem->AddMappingContext(DefaultMappingContext, 0);
         }
     }
-
-    SpawnWeapon();
 }
 
 void ARocketQuakeCharacter::Tick(float DeltaTime)
@@ -67,11 +68,14 @@ void ARocketQuakeCharacter::SetupPlayerInputComponent(UInputComponent *PlayerInp
     if (const auto EnhancedInputComponent = Cast<UEnhancedInputComponent>(PlayerInputComponent))
     {
         EnhancedInputComponent->BindAction(MoveForwardAction, ETriggerEvent::Triggered, this, &ARocketQuakeCharacter::MoveForwardCharacter);
+        EnhancedInputComponent->BindAction(MoveForwardAction, ETriggerEvent::Completed, this, &ARocketQuakeCharacter::ResetMoveForwardCharacter);
         EnhancedInputComponent->BindAction(MoveRightAction, ETriggerEvent::Triggered, this, &ARocketQuakeCharacter::MoveRightCharacter);
         EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &ARocketQuakeCharacter::LookCharacter);
         EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Triggered, this, &ARocketQuakeCharacter::Jump);
         EnhancedInputComponent->BindAction(SprintAction, ETriggerEvent::Started, this, &ARocketQuakeCharacter::HandleStartSprintAction);
         EnhancedInputComponent->BindAction(SprintAction, ETriggerEvent::Completed, this, &ARocketQuakeCharacter::HandleStopSprintAction);
+        EnhancedInputComponent->BindAction(ShootAction, ETriggerEvent::Started, WeaponComponent, &UWeaponComponent::StartShoot);
+        EnhancedInputComponent->BindAction(ShootAction, ETriggerEvent::Completed, WeaponComponent, &UWeaponComponent::StopShoot);
     }
 }
 
@@ -95,6 +99,12 @@ void ARocketQuakeCharacter::MoveForwardCharacter(const FInputActionValue &Value)
     AddMovementInput(GetActorForwardVector(), -MovementVector.X);
 }
 
+void ARocketQuakeCharacter::ResetMoveForwardCharacter(const FInputActionValue &Value)
+{
+    Server_SetMovingForward(false);
+    OnRep_ToggleSprint();
+}
+
 void ARocketQuakeCharacter::MoveRightCharacter(const FInputActionValue &Value)
 {
     const auto MovementVector = Value.Get<FVector2D>();
@@ -111,6 +121,7 @@ void ARocketQuakeCharacter::LookCharacter(const FInputActionValue &Value)
 void ARocketQuakeCharacter::Server_SetMovingForward_Implementation(bool IsMovingForward)
 {
     bIsMovingForward = IsMovingForward;
+    Multicast_ToggleSprint();
 }
 
 void ARocketQuakeCharacter::OnRep_ToggleSprint()
@@ -135,6 +146,8 @@ void ARocketQuakeCharacter::Multicast_OnDeath_Implementation()
     {
         Controller->ChangeState(NAME_Spectating);
     }
+
+    GetCapsuleComponent()->SetCollisionResponseToChannels(ECollisionResponse::ECR_Ignore);
 }
 
 void ARocketQuakeCharacter::Client_OnHealthChanged_Implementation()
@@ -142,16 +155,16 @@ void ARocketQuakeCharacter::Client_OnHealthChanged_Implementation()
     TextRenderComponent->SetText(FText::FromString(FString::Printf(TEXT("Health: %f"), HealthComponent->GetHealth())));
 }
 
-void ARocketQuakeCharacter::SpawnWeapon()
+void ARocketQuakeCharacter::Multicast_ToggleSprint_Implementation()
 {
-    if (!WeaponClass->IsValidLowLevelFast())
+    if (IsSprinting())
     {
-        return;
+        GetCharacterMovement()->MaxWalkSpeed = BaseWalkSpeed * SprintModifier;
     }
-    
-    const auto Weapon = GetWorld()->SpawnActor<ARocketquakeWeapon>(WeaponClass);
-    Weapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, TEXT("WeaponSocket"));
-    Weapon->SetOwner(this);
+    else
+    {
+        GetCharacterMovement()->MaxWalkSpeed = BaseWalkSpeed;
+    }
 }
 
 void ARocketQuakeCharacter::HandleStartSprintAction()

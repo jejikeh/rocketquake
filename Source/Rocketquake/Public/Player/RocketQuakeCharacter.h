@@ -42,6 +42,9 @@ protected:
     UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Movement")
     class UTextRenderComponent* TextRenderComponent;
 
+    UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Weapon")
+    class UWeaponComponent *WeaponComponent;
+
 private:
     UPROPERTY(ReplicatedUsing = OnRep_ToggleSprint)
     bool bIsSprinting;
@@ -66,6 +69,9 @@ private:
 
     UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Input", meta=(AllowPrivateAccess = "true"))
     class UInputAction* SprintAction;
+
+    UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Input", meta = (ClampMin = "0.0", ClampMax = "1.0", AllowPrivateAccess = "true"))
+    class UInputAction* ShootAction;
     
     UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Movement", meta = (ClampMin = "1.0", ClampMax = "10.0", AllowPrivateAccess = "true"))
     float SprintModifier = 1.5f;
@@ -73,12 +79,12 @@ private:
     UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Animations", meta = (AllowPrivateAccess = "true"))
     UAnimMontage* DeathAnimMontage;
 
-    UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Weapon", meta = (AllowPrivateAccess = "true"))
-    TSubclassOf<ARocketquakeWeapon> WeaponClass;
-
     float BaseWalkSpeed;
 
     void MoveForwardCharacter(const FInputActionValue& Value);
+
+    void ResetMoveForwardCharacter(const FInputActionValue& Value);
+
 
     void MoveRightCharacter(const FInputActionValue& Value);
     
@@ -103,8 +109,10 @@ private:
     void Client_OnHealthChanged();
     void Client_OnHealthChanged_Implementation();
 
-    void SpawnWeapon();
-
+    UFUNCTION(NetMulticast, Reliable)
+    void Multicast_ToggleSprint();
+    void Multicast_ToggleSprint_Implementation();
+    
     void HandleStartSprintAction();
 
     void HandleStopSprintAction();

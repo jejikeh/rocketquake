@@ -12,6 +12,11 @@
 UCLASS()
 class ROCKETQUAKE_API ARocketquakeHUD : public AHUD
 {
-	GENERATED_BODY()
-	
+    GENERATED_BODY()
+
+public:
+    virtual void DrawHUD() override;
+
+private:
+    void DrawCrosshair();
 };

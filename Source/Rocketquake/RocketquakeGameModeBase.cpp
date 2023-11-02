@@ -5,9 +5,11 @@
 
 #include "Player/RocketQuakeCharacter.h"
 #include "Player/RocketquakePlayerController.h"
+#include "UI/RocketquakeHUD.h"
 
 ARocketquakeGameModeBase::ARocketquakeGameModeBase()
 {
     DefaultPawnClass = ARocketQuakeCharacter::StaticClass();
     PlayerControllerClass = ARocketquakePlayerController::StaticClass();
+    HUDClass = ARocketquakeHUD::StaticClass();
 }
