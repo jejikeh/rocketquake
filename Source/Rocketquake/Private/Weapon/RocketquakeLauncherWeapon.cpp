@@ -2,8 +2,6 @@
 
 
 #include "Weapon/RocketquakeLauncherWeapon.h"
-
-#include "Kismet/GameplayStatics.h"
 #include "Weapon/LauncherProjectile.h"
 
 void ARocketquakeLauncherWeapon::StartShoot()
@@ -13,6 +11,11 @@ void ARocketquakeLauncherWeapon::StartShoot()
 
 void ARocketquakeLauncherWeapon::MakeShot()
 {
+    if (IsAmmoEmpty())
+    {
+        return;
+    }
+    
     FVector TraceStart, TraceEnd;
     
     if (!GetTraceData(TraceStart, TraceEnd))
@@ -28,6 +31,8 @@ void ARocketquakeLauncherWeapon::MakeShot()
     
     const FTransform Transform(FRotator::ZeroRotator, WeaponMesh->GetSocketTransform("WeaponSocket").GetLocation());
     Server_SpawnLauncherProjectile(Transform, Direction);
+
+    DecreaseAmmo();
 }
 
 void ARocketquakeLauncherWeapon::Server_SpawnLauncherProjectile_Implementation(const FTransform Transform, const FVector Direction)

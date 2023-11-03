@@ -76,6 +76,8 @@ void ARocketQuakeCharacter::SetupPlayerInputComponent(UInputComponent *PlayerInp
         EnhancedInputComponent->BindAction(SprintAction, ETriggerEvent::Completed, this, &ARocketQuakeCharacter::HandleStopSprintAction);
         EnhancedInputComponent->BindAction(ShootAction, ETriggerEvent::Started, WeaponComponent, &UWeaponComponent::StartShoot);
         EnhancedInputComponent->BindAction(ShootAction, ETriggerEvent::Completed, WeaponComponent, &UWeaponComponent::StopShoot);
+        EnhancedInputComponent->BindAction(SwitchWeaponAction, ETriggerEvent::Started, WeaponComponent, &UWeaponComponent::NextWeapon);
+        EnhancedInputComponent->BindAction(ReloadAction, ETriggerEvent::Started, WeaponComponent, &UWeaponComponent::Reload);
     }
 }
 
@@ -102,7 +104,6 @@ void ARocketQuakeCharacter::MoveForwardCharacter(const FInputActionValue &Value)
 void ARocketQuakeCharacter::ResetMoveForwardCharacter(const FInputActionValue &Value)
 {
     Server_SetMovingForward(false);
-    OnRep_ToggleSprint();
 }
 
 void ARocketQuakeCharacter::MoveRightCharacter(const FInputActionValue &Value)
@@ -148,6 +149,7 @@ void ARocketQuakeCharacter::Multicast_OnDeath_Implementation()
     }
 
     GetCapsuleComponent()->SetCollisionResponseToChannels(ECollisionResponse::ECR_Ignore);
+    WeaponComponent->StopShoot();
 }
 
 void ARocketQuakeCharacter::Client_OnHealthChanged_Implementation()

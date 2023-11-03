@@ -29,6 +29,8 @@ void ARocketquakeWeapon::MakeShot()
 void ARocketquakeWeapon::BeginPlay()
 {
     Super::BeginPlay();
+
+    CurrentAmmoData = AmmoDefaultData;
 }
 
 void ARocketquakeWeapon::MakeHit(FHitResult &HitResult, const FVector &Vector, const FVector &TraceEnd) const
@@ -82,4 +84,40 @@ bool ARocketquakeWeapon::GetPlayerViewPoint(FVector &ViewLocation, FRotator &Vie
 
     Controller->GetPlayerViewPoint(ViewLocation, ViewRotation);
     return true;
+}
+
+void ARocketquakeWeapon::DecreaseAmmo()
+{
+    CurrentAmmoData.Bullets--;
+
+    if (IsClipEmpty() && !IsAmmoEmpty())
+    {
+        StopShoot();
+        OnClipEmpty.Broadcast();
+    }
+}
+
+bool ARocketquakeWeapon::IsAmmoEmpty() const
+{
+    return !CurrentAmmoData.InfiniteAmmo && CurrentAmmoData.Clips <= 0 && IsClipEmpty();
+}
+
+bool ARocketquakeWeapon::IsClipEmpty() const
+{
+    return CurrentAmmoData.Bullets <= 0;
+}
+
+void ARocketquakeWeapon::ChangeClip()
+{
+    if (!CurrentAmmoData.InfiniteAmmo)
+    {
+        CurrentAmmoData.Clips--;
+    }
+
+    CurrentAmmoData.Bullets = AmmoDefaultData.Bullets;
+}
+
+bool ARocketquakeWeapon::CanReload() const
+{
+    return CurrentAmmoData.Bullets <= AmmoDefaultData.Bullets && CurrentAmmoData.Clips > 0;
 }

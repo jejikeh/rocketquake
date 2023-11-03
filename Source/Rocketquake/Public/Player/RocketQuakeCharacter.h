@@ -59,19 +59,25 @@ private:
     class UInputAction* MoveForwardAction;
     
     UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Input", meta=(AllowPrivateAccess = "true"))
-    class UInputAction* MoveRightAction;
+    UInputAction* MoveRightAction;
 
     UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Input", meta=(AllowPrivateAccess = "true"))
-    class UInputAction* LookAction;
+    UInputAction* LookAction;
 
     UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Input", meta=(AllowPrivateAccess = "true"))
-    class UInputAction* JumpAction;
+    UInputAction* JumpAction;
 
     UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Input", meta=(AllowPrivateAccess = "true"))
-    class UInputAction* SprintAction;
+    UInputAction* SprintAction;
 
-    UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Input", meta = (ClampMin = "0.0", ClampMax = "1.0", AllowPrivateAccess = "true"))
-    class UInputAction* ShootAction;
+    UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Input", meta = (AllowPrivateAccess = "true"))
+    UInputAction* ShootAction;
+
+    UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Input", meta = (AllowPrivateAccess = "true"))
+    UInputAction* SwitchWeaponAction;
+
+    UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Input", meta = (AllowPrivateAccess = "true"))
+    UInputAction* ReloadAction;
     
     UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Movement", meta = (ClampMin = "1.0", ClampMax = "10.0", AllowPrivateAccess = "true"))
     float SprintModifier = 1.5f;

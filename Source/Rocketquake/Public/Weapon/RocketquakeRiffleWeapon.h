@@ -32,6 +32,10 @@ protected:
     UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Weapon")
     float BulletSpread = 1.0f;
 
+    UFUNCTION(NetMulticast, Reliable)
+    void Multicast_DebugDraw(FHitResult HitResult);
+    void Multicast_DebugDraw_Implementation(FHitResult HitResult);
+
 private:
     FTimerHandle ShotTimerHandle;
 };

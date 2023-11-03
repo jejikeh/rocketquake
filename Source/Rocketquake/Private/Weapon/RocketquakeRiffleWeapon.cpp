@@ -8,8 +8,8 @@
 
 void ARocketquakeRiffleWeapon::StartShoot()
 {
-    MakeShot();
     GetWorldTimerManager().SetTimer(ShotTimerHandle, this, &ARocketquakeRiffleWeapon::MakeShot, TimeBetweenShots, true);
+    MakeShot();
 }
 
 void ARocketquakeRiffleWeapon::StopShoot()
@@ -19,6 +19,11 @@ void ARocketquakeRiffleWeapon::StopShoot()
 
 void ARocketquakeRiffleWeapon::MakeShot()
 {
+    if (IsAmmoEmpty())
+    {
+        return;
+    }
+    
     FVector TraceStart, TraceEnd;
     if (!GetTraceData(TraceStart, TraceEnd))
     {
@@ -31,13 +36,10 @@ void ARocketquakeRiffleWeapon::MakeShot()
     if (HitResult.bBlockingHit)
     {
         MakeDamage(HitResult);
-        DrawDebugLine(GetWorld(), WeaponMesh->GetSocketLocation("WeaponSocket"), HitResult.Location, FColor::Green, false, 3.0f);
-        DrawDebugSphere(GetWorld(), HitResult.ImpactPoint, 10.0f, 12, FColor::Red, false, 3.0f);
+        Multicast_DebugDraw(HitResult);
     }
-    else
-    {
-        DrawDebugLine(GetWorld(), WeaponMesh->GetSocketLocation("WeaponSocket"), TraceEnd, FColor::Red, false, 3.0f);
-    }
+
+    DecreaseAmmo();
 }
 
 bool ARocketquakeRiffleWeapon::GetTraceData(FVector &TraceStart, FVector &TraceEnd) const
@@ -67,4 +69,10 @@ void ARocketquakeRiffleWeapon::MakeDamage(const FHitResult &HitResult)
     }
 
     DamageActor->TakeDamage(Damage, FDamageEvent(), GetController(), this);
+}
+
+void ARocketquakeRiffleWeapon::Multicast_DebugDraw_Implementation(FHitResult HitResult)
+{
+    DrawDebugLine(GetWorld(), WeaponMesh->GetSocketLocation("WeaponSocket"), HitResult.Location, FColor::Green, false, 3.0f);
+    DrawDebugSphere(GetWorld(), HitResult.ImpactPoint, 10.0f, 12, FColor::Red, false, 3.0f);
 }
