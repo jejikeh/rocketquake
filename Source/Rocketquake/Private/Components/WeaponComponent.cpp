@@ -41,7 +41,7 @@ void UWeaponComponent::NextWeapon_Implementation()
     {
         return;
     }
-    
+
     CurrentWeaponIndex = (CurrentWeaponIndex + 1) % Weapons.Num();
     EquipWeapon(CurrentWeaponIndex);
 }
@@ -49,6 +49,63 @@ void UWeaponComponent::NextWeapon_Implementation()
 void UWeaponComponent::Reload_Implementation()
 {
     ChangeClip();
+}
+
+bool UWeaponComponent::GetWeaponUIData(FWeaponUIData &WeaponUIData) const
+{
+    if (GetOwner()->HasAuthority())
+    {
+        if (!CurrentWeapon)
+        {
+            return false;
+        }
+
+        WeaponUIData = CurrentWeapon->GetWeaponUIData();
+        return true;
+    }
+
+    if (!CurrentWeaponUIData.Crosshair || !CurrentWeaponUIData.Icon)
+    {
+        WeaponUIData = DefaultWeaponUIData;
+        return true;
+    }
+
+    WeaponUIData = CurrentWeaponUIData;
+    return true;
+}
+
+bool UWeaponComponent::GetWeaponAmmoData(FAmmoData &AmmoData)
+{
+    if (GetOwner()->HasAuthority())
+    {
+        if (!CurrentWeapon)
+        {
+            return false;
+        }
+
+        AmmoData = CurrentWeapon->GetAmmoData();
+        
+        return true;
+    }
+
+    Server_SetClientWeaponAmmoData();
+    AmmoData = CurrentAmmoData;
+    return true;
+}
+
+bool UWeaponComponent::TryToAddAmmo(TSubclassOf<ARocketquakeWeapon> Class, int32 AmmoCount)
+{
+    if (!CurrentWeapon)
+    {
+        return false;
+    }
+
+    if (CurrentWeapon->IsA(Class))
+    {
+        return CurrentWeapon->AddAmmo(AmmoCount);
+    }
+
+    return false;
 }
 
 void UWeaponComponent::BeginPlay()
@@ -104,7 +161,7 @@ void UWeaponComponent::SpawnWeapons_Implementation()
 void UWeaponComponent::EquipWeapon_Implementation(int32 Index)
 {
     const auto Character = Cast<ACharacter>(GetOwner());
-    if (!Character)
+    if (!Character || Weapons.IsEmpty())
     {
         return;
     }
@@ -123,7 +180,7 @@ void UWeaponComponent::EquipWeapon_Implementation(int32 Index)
 
     CurrentWeapon = Weapons[Index];
 
-    const auto CurrentWeaponData = WeaponClasses.FindByPredicate([&](const FWeaponData& Weapon)
+    const auto CurrentWeaponData = WeaponClasses.FindByPredicate([&](const FWeaponData &Weapon)
     {
         return Weapon.WeaponClasses == CurrentWeapon->GetClass();
     });
@@ -132,6 +189,8 @@ void UWeaponComponent::EquipWeapon_Implementation(int32 Index)
     CurrentWeapon->AttachToComponent(Character->GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, TEXT("WeaponSocket"));
     Multicast_PlayAnimMontage(EquipAnimMontage);
     bIsEquippedInProgress = true;
+
+    Client_SetCurrentWeaponUIData(CurrentWeapon->GetWeaponUIData());
 }
 
 void UWeaponComponent::Multicast_PlayAnimMontage_Implementation(UAnimMontage *AnimMontage)
@@ -141,8 +200,23 @@ void UWeaponComponent::Multicast_PlayAnimMontage_Implementation(UAnimMontage *An
     {
         return;
     }
-    
+
     Character->PlayAnimMontage(AnimMontage);
+}
+
+void UWeaponComponent::Client_SetCurrentWeaponUIData_Implementation(FWeaponUIData WeaponUIData)
+{
+    CurrentWeaponUIData = WeaponUIData;
+}
+
+void UWeaponComponent::Server_SetClientWeaponAmmoData_Implementation()
+{
+    Client_SetCurrentWeaponAmmoData(CurrentWeapon->GetAmmoData());
+}
+
+void UWeaponComponent::Client_SetCurrentWeaponAmmoData_Implementation(FAmmoData AmmoData)
+{
+    CurrentAmmoData = AmmoData;
 }
 
 void UWeaponComponent::InitAnimations()
@@ -227,7 +301,7 @@ void UWeaponComponent::ChangeClip()
 
     CurrentWeapon->StopShoot();
     CurrentWeapon->ChangeClip();
-    
+
     bIsReloadInProgress = true;
     Multicast_PlayAnimMontage(CurrentAnimMontage);
 }

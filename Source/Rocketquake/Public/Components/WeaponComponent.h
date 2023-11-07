@@ -4,9 +4,12 @@
 
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
+#include "Pickup/AmmoPickup.h"
+#include "Weapon/RocketquakeWeapon.h"
 #include "WeaponComponent.generated.h"
 
 
+struct FWeaponUIData;
 class ARocketquakeWeapon;
 class UEquipFinishedAnimNotify;
 
@@ -46,6 +49,12 @@ public:
     void Reload();
     void Reload_Implementation();
 
+    bool GetWeaponUIData(FWeaponUIData& WeaponUIData) const;
+
+    bool GetWeaponAmmoData(FAmmoData &AmmoData);
+
+    bool TryToAddAmmo(TSubclassOf<ARocketquakeWeapon> Class, int32 AmmoCount);
+
 protected:
     virtual void BeginPlay() override;
 
@@ -57,6 +66,16 @@ protected:
     UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Weapon")
     UAnimMontage* EquipAnimMontage;
 
+    // @NOTE: This is for UI on client side
+    
+    UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "UI")
+    FWeaponUIData DefaultWeaponUIData;
+
+    UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Weapon")
+    FAmmoData DefaultAmmoData;
+
+    // @NOTE:
+
 private:
     UFUNCTION(Server, Reliable)
     void SpawnWeapons();
@@ -65,7 +84,7 @@ private:
     UFUNCTION(Server, Reliable)
     void EquipWeapon(int32 Index);
     void EquipWeapon_Implementation(int32 Index);
-    
+
     UPROPERTY()
     ARocketquakeWeapon* CurrentWeapon;
 
@@ -79,6 +98,18 @@ private:
     void Multicast_PlayAnimMontage(UAnimMontage* AnimMontage);
     void Multicast_PlayAnimMontage_Implementation(UAnimMontage* AnimMontage);
 
+    UFUNCTION(Client, Reliable)
+    void Client_SetCurrentWeaponUIData(FWeaponUIData WeaponUIData);
+    void Client_SetCurrentWeaponUIData_Implementation(FWeaponUIData WeaponUIData);
+
+    UFUNCTION(Server, Reliable)
+    void Server_SetClientWeaponAmmoData();
+    void Server_SetClientWeaponAmmoData_Implementation();
+    
+    UFUNCTION(Client, Reliable)
+    void Client_SetCurrentWeaponAmmoData(FAmmoData AmmoData);
+    void Client_SetCurrentWeaponAmmoData_Implementation(FAmmoData AmmoData);
+
     void InitAnimations();
     
     void OnEquipFinished(USkeletalMeshComponent* MeshComp);
@@ -86,7 +117,11 @@ private:
     void OnReloadFinished(USkeletalMeshComponent* MeshComp);
 
     int32 CurrentWeaponIndex = 0;
+    
+    FWeaponUIData CurrentWeaponUIData;
 
+    FAmmoData CurrentAmmoData;
+    
     bool bIsEquippedInProgress = false;
     
     bool bIsReloadInProgress = false;

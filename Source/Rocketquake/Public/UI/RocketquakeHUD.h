@@ -17,6 +17,9 @@ class ROCKETQUAKE_API ARocketquakeHUD : public AHUD
 public:
     virtual void DrawHUD() override;
 
-private:
-    void DrawCrosshair();
+protected:
+    UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "UI")
+    TSubclassOf<UUserWidget> PlayerHudWidgetClass;
+
+    virtual void BeginPlay() override;
 };

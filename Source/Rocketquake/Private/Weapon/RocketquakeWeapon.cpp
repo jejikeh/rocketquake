@@ -2,7 +2,6 @@
 
 
 #include "Weapon/RocketquakeWeapon.h"
-
 #include "GameFramework/Character.h"
 
 // Sets default values
@@ -120,4 +119,43 @@ void ARocketquakeWeapon::ChangeClip()
 bool ARocketquakeWeapon::CanReload() const
 {
     return CurrentAmmoData.Bullets <= AmmoDefaultData.Bullets && CurrentAmmoData.Clips > 0;
+}
+
+bool ARocketquakeWeapon::AddAmmo(int32 AmmoCount)
+{
+    if (CurrentAmmoData.InfiniteAmmo || AmmoCount <= 0)
+    {
+        return false;
+    }
+
+    if (CurrentAmmoData.Clips == AmmoDefaultData.Clips && CurrentAmmoData.Bullets == AmmoDefaultData.Bullets)
+    {
+        return false;
+    }
+
+    if (IsAmmoEmpty())
+    {
+        CurrentAmmoData.Clips = FMath::Clamp(CurrentAmmoData.Clips + AmmoCount, 0, AmmoDefaultData.Clips + 1);
+        OnClipEmpty.Broadcast();
+    }
+
+    else if (CurrentAmmoData.Clips < AmmoDefaultData.Clips)
+    {
+        const auto NextClipsAmount = CurrentAmmoData.Clips + AmmoCount;
+        if (AmmoDefaultData.Clips - NextClipsAmount >= 0)
+        {
+            CurrentAmmoData.Clips = NextClipsAmount;
+        }
+        else
+        {
+            CurrentAmmoData.Clips = AmmoDefaultData.Clips;
+            CurrentAmmoData.Bullets = AmmoDefaultData.Bullets;
+        }
+    }
+    else
+    {
+        CurrentAmmoData.Bullets = AmmoDefaultData.Bullets;
+    }
+
+    return true;
 }

@@ -23,6 +23,18 @@ struct FAmmoData
     bool InfiniteAmmo;
 };
 
+USTRUCT(BlueprintType)
+struct FWeaponUIData
+{
+    GENERATED_BODY()
+
+    UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Weapon")
+    UTexture2D* Icon;
+
+    UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Weapon")
+    UTexture2D* Crosshair;
+};
+
 UCLASS()
 class ROCKETQUAKE_API ARocketquakeWeapon : public AActor
 {
@@ -39,7 +51,21 @@ public:
 
     bool CanReload() const;
     
+    bool AddAmmo(int32 AmmoCount);
+
     FOnClipEmptySignature OnClipEmpty;
+
+    UFUNCTION(BlueprintCallable, Category = "UI")
+    FWeaponUIData GetWeaponUIData() const
+    {
+        return WeaponUIData;
+    };
+
+    UFUNCTION(BlueprintCallable, Category = "Ammo")
+    FAmmoData GetAmmoData() const
+    {
+        return CurrentAmmoData;
+    };
 
 protected:
     virtual void BeginPlay() override;
@@ -65,6 +91,9 @@ protected:
 
     UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Weapon")
     FAmmoData AmmoDefaultData{15, 10, false};
+
+    UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Weapon")
+    FWeaponUIData WeaponUIData;
 
     void DecreaseAmmo();
 

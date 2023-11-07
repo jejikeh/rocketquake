@@ -8,7 +8,6 @@
 #include "Components/CapsuleComponent.h"
 #include "Components/HealthComponent.h"
 #include "Components/RocketquakeMovementComponent.h"
-#include "Components/TextRenderComponent.h"
 #include "Components/WeaponComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "Net/UnrealNetwork.h"
@@ -29,9 +28,6 @@ ARocketQuakeCharacter::ARocketQuakeCharacter(const FObjectInitializer &ObjectIni
     HealthComponent = CreateDefaultSubobject<UHealthComponent>("HealthComponent");
     HealthComponent->SetIsReplicated(true);
     HealthComponent->SetNetAddressable();
-
-    TextRenderComponent = CreateDefaultSubobject<UTextRenderComponent>("TextRenderComponent");
-    TextRenderComponent->SetupAttachment(GetRootComponent());
 
     WeaponComponent = CreateDefaultSubobject<UWeaponComponent>("WeaponComponent");
 }
@@ -154,7 +150,6 @@ void ARocketQuakeCharacter::Multicast_OnDeath_Implementation()
 
 void ARocketQuakeCharacter::Client_OnHealthChanged_Implementation()
 {
-    TextRenderComponent->SetText(FText::FromString(FString::Printf(TEXT("Health: %f"), HealthComponent->GetHealth())));
 }
 
 void ARocketQuakeCharacter::Multicast_ToggleSprint_Implementation()

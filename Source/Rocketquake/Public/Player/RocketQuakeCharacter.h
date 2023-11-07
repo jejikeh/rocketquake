@@ -39,9 +39,6 @@ protected:
     UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Movement")
     class UHealthComponent* HealthComponent;
 
-    UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Movement")
-    class UTextRenderComponent* TextRenderComponent;
-
     UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Weapon")
     class UWeaponComponent *WeaponComponent;
 
