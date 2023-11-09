@@ -88,6 +88,10 @@ private:
 
     void ResetMoveForwardCharacter(const FInputActionValue& Value);
 
+    UFUNCTION(NetMulticast, Reliable)
+    void Multicast_ResetMoveForwardCharacter();
+    void Multicast_ResetMoveForwardCharacter_Implementation();
+
 
     void MoveRightCharacter(const FInputActionValue& Value);
     

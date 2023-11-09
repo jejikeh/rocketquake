@@ -99,7 +99,17 @@ void ARocketQuakeCharacter::MoveForwardCharacter(const FInputActionValue &Value)
 
 void ARocketQuakeCharacter::ResetMoveForwardCharacter(const FInputActionValue &Value)
 {
-    Server_SetMovingForward(false);
+    Multicast_ResetMoveForwardCharacter();
+}
+
+void ARocketQuakeCharacter::Multicast_ResetMoveForwardCharacter_Implementation()
+{
+    if (IsLocallyControlled())
+    {
+        Server_SetMovingForward(false);
+    }
+    
+    Server_SetMovingForward_Implementation(false);
 }
 
 void ARocketQuakeCharacter::MoveRightCharacter(const FInputActionValue &Value)
