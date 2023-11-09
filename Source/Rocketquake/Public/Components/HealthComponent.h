@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
+#include "Pickup/HealthPickup.h"
 #include "HealthComponent.generated.h"
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnDeath);
@@ -21,7 +22,9 @@ public:
     float GetHealth() const
     {
         return Health;
-    };
+    }
+
+    bool AddHealth(float HealthAmount);
 
     UFUNCTION(BlueprintCallable)
     bool IsDead() const
@@ -57,6 +60,9 @@ protected:
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Health")
     float HealModifier = 1.0f;
 
+    UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "VFX")
+    TSubclassOf<UCameraShakeBase> CameraShake; 
+
 private:
     UPROPERTY(Replicated)
     float Health = 0.0f;
@@ -68,4 +74,8 @@ private:
         AActor *DamageCauser);
 
     void HealthHealUpdate();
+
+    UFUNCTION(Client, Reliable)
+    void Client_PlayCameraShake();
+    void Client_PlayCameraShake_Implementation();
 };

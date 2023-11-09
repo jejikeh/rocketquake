@@ -4,7 +4,10 @@
 #include "Weapon/LauncherProjectile.h"
 
 #include "Components/SphereComponent.h"
+#include "Components/WeaponFXComponent.h"
+#include "GameFramework/Character.h"
 #include "GameFramework/ProjectileMovementComponent.h"
+#include "Kismet/GameplayStatics.h"
 #include "PhysicsEngine/RadialForceComponent.h"
 
 // Sets default values
@@ -17,6 +20,7 @@ ALauncherProjectile::ALauncherProjectile()
     SphereComponent->InitSphereRadius(5.0f);
     SphereComponent->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
     SphereComponent->SetCollisionResponseToChannels(ECollisionResponse::ECR_Block);
+    SphereComponent->bReturnMaterialOnMove = true;
     SetRootComponent(SphereComponent);
 
     RadialForceComponent = CreateDefaultSubobject<URadialForceComponent>("RadialForceComponent");
@@ -24,6 +28,8 @@ ALauncherProjectile::ALauncherProjectile()
 
     ProjectileMovementComponent = CreateDefaultSubobject<UProjectileMovementComponent>("ProjectileMovementComponent");
     ProjectileMovementComponent->SetIsReplicated(true);
+
+    WeaponFXComponent = CreateDefaultSubobject<UWeaponFXComponent>("WeaponFXComponent");
 }
 
 void ALauncherProjectile::SetShootDirection_Implementation(const FVector &Direction)
@@ -32,12 +38,21 @@ void ALauncherProjectile::SetShootDirection_Implementation(const FVector &Direct
     ProjectileMovementComponent->Velocity = ShootDirection * ProjectileMovementComponent->InitialSpeed;
 }
 
-void ALauncherProjectile::HandleHit_Implementation()
+void ALauncherProjectile::HandleHit_Implementation(FHitResult Hit)
 {
     ProjectileMovementComponent->StopMovementImmediately();
     RadialForceComponent->FireImpulse();
 
     DrawDebugSphere(GetWorld(), GetActorLocation(), RadialForceComponent->Radius, 12, FColor::Red, false, 5.0f);
+    WeaponFXComponent->PlayImpactFx(Hit);
+
+    const auto Player = Cast<APlayerController>(UGameplayStatics::GetPlayerController(GetWorld(), 0));
+    if (!Player)
+    {
+        return;
+    }
+
+    Player->PlayerCameraManager->StartCameraShake(CameraShake);
     
     Destroy();
 }
@@ -57,7 +72,7 @@ void ALauncherProjectile::OnHit(UPrimitiveComponent *HitComponent, AActor *Other
 {
     if (HasAuthority())
     {
-        HandleHit();
+        HandleHit(Hit);
     }
     
     // ProjectileMovementComponent->StopMovementImmediately();

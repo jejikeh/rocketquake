@@ -92,3 +92,26 @@ bool UPlayerHudWidget::IsPlayerSpectating()
 
     return Controller->GetStateName() == NAME_Spectating;
 }
+
+bool UPlayerHudWidget::Initialize()
+{
+    // const auto Player = GetOwningPlayerPawn();
+    // if (!Player)
+    // {
+    //     return Super::Initialize();
+    // }
+    //
+    // const auto Component = Player->GetComponentByClass(UHealthComponent::StaticClass());
+    // const auto HealthComponent = Cast<UHealthComponent>(Component);
+    // if (!HealthComponent)
+    // {
+    //     HealthComponent->OnHealthChanged.AddDynamic(this, &UPlayerHudWidget::OnHealthChanged);
+    // }
+    //
+    return Super::Initialize();
+}
+
+void UPlayerHudWidget::OnHealthChanged()
+{
+    OnTakeDamage();
+}

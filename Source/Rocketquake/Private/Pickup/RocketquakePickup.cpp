@@ -8,7 +8,7 @@
 // Sets default values
 ARocketquakePickup::ARocketquakePickup()
 {
-    PrimaryActorTick.bCanEverTick = false;
+    PrimaryActorTick.bCanEverTick = true;
     bReplicates = true;
 
     SphereComponent = CreateDefaultSubobject<USphereComponent>("SphereComponent");
@@ -21,6 +21,15 @@ ARocketquakePickup::ARocketquakePickup()
 void ARocketquakePickup::BeginPlay()
 {
     Super::BeginPlay();
+
+    GenerateRotationYaw();
+}
+
+void ARocketquakePickup::Tick(float DeltaSeconds)
+{
+    Super::Tick(DeltaSeconds);
+
+    AddActorLocalRotation(FRotator(0.0f, RotationYaw, 0.0f));
 }
 
 void ARocketquakePickup::NotifyActorBeginOverlap(AActor *OtherActor)
@@ -52,4 +61,10 @@ void ARocketquakePickup::Respawn()
 {
     SphereComponent->SetCollisionResponseToAllChannels(ECR_Overlap);
     GetRootComponent()->SetVisibility(true, true);
+    GenerateRotationYaw();
+}
+
+void ARocketquakePickup::GenerateRotationYaw()
+{
+    RotationYaw = FMath::RandRange(1.0f, 2.0f) * (FMath::RandBool() ? 1.0f : -1.0f);
 }

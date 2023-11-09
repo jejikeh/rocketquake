@@ -2,6 +2,9 @@
 
 
 #include "Weapon/RocketquakeWeapon.h"
+
+#include "NiagaraFunctionLibrary.h"
+#include "NiagaraSystem.h"
 #include "GameFramework/Character.h"
 
 // Sets default values
@@ -36,6 +39,7 @@ void ARocketquakeWeapon::MakeHit(FHitResult &HitResult, const FVector &Vector, c
 {
     FCollisionQueryParams CollisionQueryParams;
     CollisionQueryParams.AddIgnoredActor(GetOwner());
+    CollisionQueryParams.bReturnPhysicalMaterial = true;
 
     GetWorld()->LineTraceSingleByChannel(HitResult, Vector, TraceEnd, ECC_Visibility, CollisionQueryParams);
 }
@@ -119,6 +123,18 @@ void ARocketquakeWeapon::ChangeClip()
 bool ARocketquakeWeapon::CanReload() const
 {
     return CurrentAmmoData.Bullets <= AmmoDefaultData.Bullets && CurrentAmmoData.Clips > 0;
+}
+
+UNiagaraComponent* ARocketquakeWeapon::SpawnMuzzleFlash() const
+{
+    return UNiagaraFunctionLibrary::SpawnSystemAttached(
+        NiagaraSystem,
+        WeaponMesh,
+        TEXT("MuzzleFlashSocket"),
+        FVector::ZeroVector,
+        FRotator::ZeroRotator,
+        EAttachLocation::SnapToTarget,
+        true);
 }
 
 bool ARocketquakeWeapon::AddAmmo(int32 AmmoCount)

@@ -6,6 +6,8 @@
 #include "GameFramework/Actor.h"
 #include "RocketquakeWeapon.generated.h"
 
+class UNiagaraComponent;
+class UNiagaraSystem;
 DECLARE_MULTICAST_DELEGATE(FOnClipEmptySignature);
 
 USTRUCT(BlueprintType)
@@ -66,6 +68,11 @@ public:
     {
         return CurrentAmmoData;
     };
+
+    UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "VFX")
+    UNiagaraSystem* NiagaraSystem;
+
+    UNiagaraComponent* SpawnMuzzleFlash() const;
 
 protected:
     virtual void BeginPlay() override;

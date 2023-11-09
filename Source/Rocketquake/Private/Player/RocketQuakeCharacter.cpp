@@ -42,7 +42,6 @@ void ARocketQuakeCharacter::BeginPlay()
     HealthComponent->OnHealthChanged.AddDynamic(this, &ARocketQuakeCharacter::Client_OnHealthChanged);
     Client_OnHealthChanged();
 
-
     if (const auto PlayerController = Cast<ARocketquakePlayerController>(GetController()))
     {
         if (const auto Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer()))
@@ -64,7 +63,8 @@ void ARocketQuakeCharacter::SetupPlayerInputComponent(UInputComponent *PlayerInp
     if (const auto EnhancedInputComponent = Cast<UEnhancedInputComponent>(PlayerInputComponent))
     {
         EnhancedInputComponent->BindAction(MoveForwardAction, ETriggerEvent::Triggered, this, &ARocketQuakeCharacter::MoveForwardCharacter);
-        EnhancedInputComponent->BindAction(MoveForwardAction, ETriggerEvent::Completed, this, &ARocketQuakeCharacter::ResetMoveForwardCharacter);
+        EnhancedInputComponent->BindAction(MoveForwardAction, ETriggerEvent::Completed, this,
+            &ARocketQuakeCharacter::ResetMoveForwardCharacter);
         EnhancedInputComponent->BindAction(MoveRightAction, ETriggerEvent::Triggered, this, &ARocketQuakeCharacter::MoveRightCharacter);
         EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &ARocketQuakeCharacter::LookCharacter);
         EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Triggered, this, &ARocketQuakeCharacter::Jump);
@@ -135,17 +135,40 @@ void ARocketQuakeCharacter::OnRep_ToggleSprint()
 
 void ARocketQuakeCharacter::Multicast_OnDeath_Implementation()
 {
-    PlayAnimMontage(DeathAnimMontage);
-
-    GetCharacterMovement()->DisableMovement();
-    SetLifeSpan(5.0f);
-    if (Controller)
-    {
-        Controller->ChangeState(NAME_Spectating);
-    }
+    // PlayAnimMontage(DeathAnimMontage);
 
     GetCapsuleComponent()->SetCollisionResponseToChannels(ECollisionResponse::ECR_Ignore);
     WeaponComponent->StopShoot();
+    
+    Server_OnDeath();
+    
+    GetCharacterMovement()->DisableMovement();
+    
+    // SetLifeSpan(5.0f);
+    //
+    // if (Controller)
+    // {
+    //     Controller->ChangeState(NAME_Spectating);
+    // }
+    //
+    
+
+    GetMesh()->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+    GetMesh()->SetSimulatePhysics(true);
+    
+}
+
+void ARocketQuakeCharacter::Server_OnDeath_Implementation()
+{
+    if (Controller)
+    {
+        ARocketquakePlayerController *RocketQuakeController = Cast<ARocketquakePlayerController>(Controller.Get());
+
+        if (RocketQuakeController)
+        {
+            RocketQuakeController->StartSpectating();
+        }
+    }
 }
 
 void ARocketQuakeCharacter::Client_OnHealthChanged_Implementation()

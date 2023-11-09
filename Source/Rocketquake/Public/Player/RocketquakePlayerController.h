@@ -12,9 +12,17 @@
 UCLASS()
 class ROCKETQUAKE_API ARocketquakePlayerController : public APlayerController
 {
-	GENERATED_BODY()
-	
-	
-	
-	
+    GENERATED_BODY()
+
+public:
+    void StartSpectating();
+
+    void StartPlaying();
+
+protected:
+    UFUNCTION(Client, Reliable)
+    void Client_StartSpectating();
+    void Client_StartSpectating_Implementation();
+
+    virtual void OnRep_Pawn() override;
 };

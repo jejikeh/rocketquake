@@ -16,4 +16,7 @@ class ROCKETQUAKE_API AHealthPickup : public ARocketquakePickup
 
 protected:
     virtual bool GivePickupTo(APawn *PlayerPawn) override;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Pickup", meta = (ClampMin = "10.0", ClampMax = "100.0"))
+    float HealthAmount = 50.0f;
 };

@@ -3,18 +3,82 @@
 
 #include "Weapon/RocketquakeRiffleWeapon.h"
 
+#include "NiagaraFunctionLibrary.h"
+#include "Components/WeaponFXComponent.h"
 #include "Engine/DamageEvents.h"
 #include "GameFramework/Character.h"
+#include "NiagaraComponent.h"
+
+ARocketquakeRiffleWeapon::ARocketquakeRiffleWeapon()
+{
+    WeaponFXComponent = CreateDefaultSubobject<UWeaponFXComponent>("WeaponFXComponent");
+}
+
+void ARocketquakeRiffleWeapon::Client_PlayCameraShake_Implementation()
+{
+    const auto Player = Cast<ACharacter>(GetOwner());
+    if (!Player)
+    {
+        return;
+    }
+
+    const auto Controller = Player->GetController<APlayerController>();
+    if (!Controller)
+    {
+        return;
+    }
+
+    Controller->PlayerCameraManager->StartCameraShake(CameraShake);
+}
+
+void ARocketquakeRiffleWeapon::BeginPlay()
+{
+    Super::BeginPlay();
+}
+
+void ARocketquakeRiffleWeapon::InitMuzzleFX_Implementation()
+{
+    if (!MuzzleFComponent)
+    {
+        MuzzleFComponent = SpawnMuzzleFlash();
+    }
+
+    SetMuzzleFXVisibility(true);
+}
+
+void ARocketquakeRiffleWeapon::SetMuzzleFXVisibility_Implementation(bool bVisible)
+{
+    if (MuzzleFComponent)
+    {
+        MuzzleFComponent->SetPaused(!bVisible);
+        MuzzleFComponent->SetVisibility(bVisible, true);
+    }
+}
+
+void ARocketquakeRiffleWeapon::Multicast_SpawnTraceFx_Implementation(FVector TraceStart, FVector TraceEnd)
+{
+    const auto TraceFxComponent = UNiagaraFunctionLibrary::SpawnSystemAtLocation(
+        GetWorld(),
+        TraceFX,
+        TraceStart);
+
+    if (TraceFxComponent)
+    {
+        TraceFxComponent->SetNiagaraVariableVec3(TraceTarget, TraceEnd);
+    }
+}
 
 void ARocketquakeRiffleWeapon::StartShoot()
 {
     GetWorldTimerManager().SetTimer(ShotTimerHandle, this, &ARocketquakeRiffleWeapon::MakeShot, TimeBetweenShots, true);
     MakeShot();
+    InitMuzzleFX();
 }
 
 void ARocketquakeRiffleWeapon::StopShoot()
 {
     GetWorldTimerManager().ClearTimer(ShotTimerHandle);
+    SetMuzzleFXVisibility(false);
 }
 
 void ARocketquakeRiffleWeapon::MakeShot()
@@ -33,13 +97,18 @@ void ARocketquakeRiffleWeapon::MakeShot()
     FHitResult HitResult;
     MakeHit(HitResult, TraceStart, TraceEnd);
 
+    FVector TraceFxEnd = TraceEnd;
+
     if (HitResult.bBlockingHit)
     {
+        TraceFxEnd = HitResult.ImpactPoint;
         MakeDamage(HitResult);
         Multicast_DebugDraw(HitResult);
     }
 
     DecreaseAmmo();
+    Client_PlayCameraShake();
+    Multicast_SpawnTraceFx(WeaponMesh->GetSocketLocation("MuzzleFlashSocket"), TraceFxEnd);
 }
 
 bool ARocketquakeRiffleWeapon::GetTraceData(FVector &TraceStart, FVector &TraceEnd) const
@@ -73,6 +142,8 @@ void ARocketquakeRiffleWeapon::MakeDamage(const FHitResult &HitResult)
 
 void ARocketquakeRiffleWeapon::Multicast_DebugDraw_Implementation(FHitResult HitResult)
 {
-    DrawDebugLine(GetWorld(), WeaponMesh->GetSocketLocation("WeaponSocket"), HitResult.Location, FColor::Green, false, 3.0f);
-    DrawDebugSphere(GetWorld(), HitResult.ImpactPoint, 10.0f, 12, FColor::Red, false, 3.0f);
+    WeaponFXComponent->PlayImpactFx(HitResult);
+    
+    // DrawDebugLine(GetWorld(), WeaponMesh->GetSocketLocation("MuzzleFlashSocket"), HitResult.Location, FColor::Green, false, 3.0f);
+    // DrawDebugSphere(GetWorld(), HitResult.ImpactPoint, 10.0f, 12, FColor::Red, false, 3.0f);
 }

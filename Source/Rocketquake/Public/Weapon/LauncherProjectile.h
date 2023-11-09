@@ -6,6 +6,7 @@
 #include "GameFramework/Actor.h"
 #include "LauncherProjectile.generated.h"
 
+class UWeaponFXComponent;
 class URadialForceComponent;
 class UProjectileMovementComponent;
 class USphereComponent;
@@ -27,13 +28,19 @@ public:
     UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Weapon")
     URadialForceComponent* RadialForceComponent;
 
+    UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "VFX")
+    TSubclassOf<UCameraShakeBase> CameraShake;
+
+    UPROPERTY(VisibleAnywhere, Category = "Weapon")
+    UWeaponFXComponent* WeaponFXComponent;
+
     UFUNCTION(NetMulticast, Reliable)
     void SetShootDirection(const FVector& Direction);
     void SetShootDirection_Implementation(const FVector& Direction);
 
     UFUNCTION(NetMulticast, Reliable)
-    void HandleHit();
-    void HandleHit_Implementation();
+    void HandleHit(FHitResult Hit);
+    void HandleHit_Implementation(FHitResult Hit);
 
 protected:
     UFUNCTION()

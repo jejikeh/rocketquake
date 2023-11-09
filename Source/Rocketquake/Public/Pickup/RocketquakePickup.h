@@ -19,6 +19,8 @@ public:
 protected:
     virtual void BeginPlay() override;
 
+    virtual void Tick(float DeltaSeconds) override;
+
     UPROPERTY(VisibleAnywhere, Category = "Pickup")
     USphereComponent* SphereComponent;
 
@@ -35,4 +37,8 @@ private:
     void PickupWasCollected_Implementation();
     
     void Respawn();
+
+    float RotationYaw = 0.0f;
+
+    void GenerateRotationYaw();
 };

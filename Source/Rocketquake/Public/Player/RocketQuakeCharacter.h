@@ -108,6 +108,10 @@ private:
     void Multicast_OnDeath();
     void Multicast_OnDeath_Implementation();
 
+    UFUNCTION(Server, Reliable)
+    void Server_OnDeath();
+    void Server_OnDeath_Implementation();
+
     UFUNCTION(Client, Reliable)
     void Client_OnHealthChanged();
     void Client_OnHealthChanged_Implementation();

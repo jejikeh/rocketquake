@@ -9,6 +9,19 @@ UHealthComponent::UHealthComponent()
     PrimaryComponentTick.bCanEverTick = true;
 }
 
+bool UHealthComponent::AddHealth(float HealthAmount)
+{
+    if (FMath::IsNearlyEqual(Health, MaxHealth) || IsDead())
+    {
+        return false;
+    }
+
+    Health = FMath::Min(Health + HealthAmount, MaxHealth);
+    OnHealthChanged.Broadcast();
+    
+    return true;
+}
+
 void UHealthComponent::BeginPlay()
 {
     Super::BeginPlay();
@@ -41,6 +54,8 @@ void UHealthComponent::OnTakeAnyDamageHandle(AActor *DamagedActor, float Damage,
     {
         GetWorld()->GetTimerManager().SetTimer(HealTimerHandle, this, &UHealthComponent::HealthHealUpdate, HealSpeedRate, true, HealDelay);
     }
+
+    Client_PlayCameraShake();
 }
 
 void UHealthComponent::HealthHealUpdate()
@@ -52,6 +67,28 @@ void UHealthComponent::HealthHealUpdate()
     {
         GetWorld()->GetTimerManager().ClearTimer(HealTimerHandle);
     }
+}
+
+void UHealthComponent::Client_PlayCameraShake_Implementation()
+{
+    if (IsDead())
+    {
+        return;
+    }
+
+    const auto Player = Cast<APawn>(GetOwner());
+    if (!Player)
+    {
+        return;
+    }
+
+    const auto Controller = Player->GetController<APlayerController>();
+    if (!Controller)
+    {
+        return;
+    }
+
+    Controller->PlayerCameraManager->StartCameraShake(CameraShake);
 }
 
 void UHealthComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty> &OutLifetimeProps) const
