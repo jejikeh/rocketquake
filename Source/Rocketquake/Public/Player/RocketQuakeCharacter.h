@@ -27,6 +27,10 @@ public:
     UFUNCTION(BlueprintCallable, Category = "Movement")
     float GetMovementDirection() const;
 
+    UFUNCTION(NetMulticast, Reliable)
+    void SetPlayerColor(FLinearColor NewColor);
+    void SetPlayerColor_Implementation(FLinearColor NewColor);
+
 protected:
     virtual void BeginPlay() override;
 
@@ -81,6 +85,9 @@ private:
 
     UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Animations", meta = (AllowPrivateAccess = "true"))
     UAnimMontage* DeathAnimMontage;
+
+    UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Materials", meta = (AllowPrivateAccess = "true"))
+    FName MaterialColorName = "Paint Color";
 
     float BaseWalkSpeed;
 

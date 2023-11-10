@@ -90,6 +90,17 @@ float ARocketQuakeCharacter::GetMovementDirection() const
     return FMath::RadiansToDegrees(Angle) * FMath::Sign(Cross.Z);
 }
 
+void ARocketQuakeCharacter::SetPlayerColor_Implementation(FLinearColor NewColor)
+{
+    const auto MaterialInstance = GetMesh()->CreateAndSetMaterialInstanceDynamic(0);
+    if (!MaterialInstance)
+    {
+        return;
+    }
+
+    MaterialInstance->SetVectorParameterValue(MaterialColorName, NewColor);
+}
+
 void ARocketQuakeCharacter::MoveForwardCharacter(const FInputActionValue &Value)
 {
     const auto MovementVector = Value.Get<FVector2D>();

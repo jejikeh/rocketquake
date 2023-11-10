@@ -5,6 +5,7 @@
 
 #include "Player/RocketQuakeCharacter.h"
 #include "Player/RocketquakePlayerController.h"
+#include "Player/RocketquakePlayerState.h"
 #include "UI/RocketquakeHUD.h"
 
 ARocketquakeGameModeBase::ARocketquakeGameModeBase()
@@ -12,4 +13,127 @@ ARocketquakeGameModeBase::ARocketquakeGameModeBase()
     DefaultPawnClass = ARocketQuakeCharacter::StaticClass();
     PlayerControllerClass = ARocketquakePlayerController::StaticClass();
     HUDClass = ARocketquakeHUD::StaticClass();
+    PlayerStateClass = ARocketquakePlayerState::StaticClass();
+}
+
+void ARocketquakeGameModeBase::StartPlay()
+{
+    Super::StartPlay();
+
+    CurrentRound = 1;
+    // StartRound();
+    // CreateTeamsInfo();
+}
+
+void ARocketquakeGameModeBase::GenericPlayerInitialization(AController *C)
+{
+    Super::GenericPlayerInitialization(C);
+
+    // ResetPlayers();
+    // StartRound();
+    // CreateTeamsInfo();
+}
+
+void ARocketquakeGameModeBase::StartRound()
+{
+    RoundCountDown = GameData.RoundTimeSecs;
+    GetWorldTimerManager().SetTimer(GameRoundTimerHandle, this, &ARocketquakeGameModeBase::GameTimerUpdate, 1.0f, true);
+}
+
+void ARocketquakeGameModeBase::GameTimerUpdate()
+{
+    RoundCountDown--;
+    if (RoundCountDown <= 0)
+    {
+        GetWorldTimerManager().ClearTimer(GameRoundTimerHandle);
+
+        if (CurrentRound < GameData.Rounds)
+        {
+            CurrentRound++;
+            ResetPlayers();
+            StartRound();
+        }
+        else
+        {
+            
+        }
+    }
+}
+
+void ARocketquakeGameModeBase::ResetPlayers()
+{
+    for (auto It = GetWorld()->GetControllerIterator(); It; ++It)
+    {
+        ResetOnePlayer(It->Get());
+    }
+}
+
+void ARocketquakeGameModeBase::ResetOnePlayer(AController *Controller)
+{
+    if (Controller && Controller->GetPawn())
+    {
+        Controller->GetPawn()->Reset();
+    }
+
+    RestartPlayer(Controller);
+    SetPlayerColor(Controller);
+}
+
+void ARocketquakeGameModeBase::CreateTeamsInfo()
+{
+    int32 TeamID = 1;
+    for (auto It = GetWorld()->GetControllerIterator(); It; ++It)
+    {
+        UE_LOG(LogTemp, Warning, TEXT("TeamID: %d"), TeamID);
+        const auto Controller = It->Get();
+        if (!Controller)
+        {
+            continue;
+        }
+
+        const auto PlayerState = Cast<ARocketquakePlayerState>(Controller->PlayerState);
+        if (!PlayerState)
+        {
+            continue;
+        }
+
+        PlayerState->SetTeamID(TeamID);
+        PlayerState->SetTeamColor(GetColorByTeamId(TeamID));
+        SetPlayerColor(Controller);
+
+        TeamID %= GameData.Players + 1;
+        ++TeamID;
+    }
+}
+
+FLinearColor ARocketquakeGameModeBase::GetColorByTeamId(int32 TeamId) const
+{
+    if (TeamId - 1 < GameData.TeamColors.Num())
+    {
+        return GameData.TeamColors[TeamId - 1];
+    }
+
+    return GameData.DefaultTeamColor;
+}
+
+void ARocketquakeGameModeBase::SetPlayerColor(AController *Controller)
+{
+    if (!Controller)
+    {
+        return;
+    }
+
+    const auto Character  = Cast<ARocketQuakeCharacter>(Controller->GetPawn());
+    if (!Character)
+    {
+        return;
+    }
+
+    const auto PlayerState = Cast<ARocketquakePlayerState>(Controller->PlayerState);
+    if (!PlayerState)
+    {
+        return;
+    }
+
+    Character->SetPlayerColor(PlayerState->GetTeamColor());
 }
