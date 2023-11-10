@@ -75,6 +75,6 @@ private:
     void SetMuzzleFXVisibility_Implementation(bool bVisible);
 
     UFUNCTION(NetMulticast, Reliable)
-    void Multicast_SpawnTraceFx(FVector TraceStart, FVector TraceEnd);
-    void Multicast_SpawnTraceFx_Implementation(FVector TraceStart, FVector TraceEnd);
+    void Multicast_SpawnTraceFx(FVector TraceEnd);
+    void Multicast_SpawnTraceFx_Implementation(FVector TraceEnd);
 };

@@ -55,12 +55,12 @@ void ARocketquakeRiffleWeapon::SetMuzzleFXVisibility_Implementation(bool bVisibl
     }
 }
 
-void ARocketquakeRiffleWeapon::Multicast_SpawnTraceFx_Implementation(FVector TraceStart, FVector TraceEnd)
+void ARocketquakeRiffleWeapon::Multicast_SpawnTraceFx_Implementation(FVector TraceEnd)
 {
     const auto TraceFxComponent = UNiagaraFunctionLibrary::SpawnSystemAtLocation(
         GetWorld(),
         TraceFX,
-        TraceStart);
+        WeaponMesh->GetSocketLocation("MuzzleFlashSocket"));
 
     if (TraceFxComponent)
     {
@@ -108,7 +108,7 @@ void ARocketquakeRiffleWeapon::MakeShot()
 
     DecreaseAmmo();
     Client_PlayCameraShake();
-    Multicast_SpawnTraceFx(WeaponMesh->GetSocketLocation("MuzzleFlashSocket"), TraceFxEnd);
+    Multicast_SpawnTraceFx(TraceFxEnd);
 }
 
 bool ARocketquakeRiffleWeapon::GetTraceData(FVector &TraceStart, FVector &TraceEnd) const

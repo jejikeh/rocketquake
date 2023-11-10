@@ -21,17 +21,17 @@ void ARocketquakeGameModeBase::StartPlay()
     Super::StartPlay();
 
     CurrentRound = 1;
-    // StartRound();
-    // CreateTeamsInfo();
+    StartRound();
+    CreateTeamsInfo();
 }
 
 void ARocketquakeGameModeBase::GenericPlayerInitialization(AController *C)
 {
     Super::GenericPlayerInitialization(C);
 
-    // ResetPlayers();
-    // StartRound();
-    // CreateTeamsInfo();
+    ResetPlayers();
+    StartRound();
+    CreateTeamsInfo();
 }
 
 void ARocketquakeGameModeBase::StartRound()
