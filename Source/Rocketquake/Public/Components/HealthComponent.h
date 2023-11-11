@@ -78,4 +78,6 @@ private:
     UFUNCTION(Client, Reliable)
     void Client_PlayCameraShake();
     void Client_PlayCameraShake_Implementation();
+
+    void Killed(AController* Killer);
 };

@@ -1,8 +1,15 @@
 // Rocketquake, jejikeh
 
 #include "Player/RocketquakePlayerController.h"
+
+#include "Components/RespawnComponent.h"
 #include "GameFramework/SpectatorPawn.h"
 
+
+ARocketquakePlayerController::ARocketquakePlayerController()
+{
+    RespawnComponent = CreateDefaultSubobject<URespawnComponent>("RespawnComponent");
+}
 
 void ARocketquakePlayerController::StartSpectating()
 {

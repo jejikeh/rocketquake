@@ -25,6 +25,8 @@ void UWeaponComponent::StartShoot_Implementation()
     CurrentWeapon->StartShoot();
 }
 
+// TODO: Make shoot on client local
+
 void UWeaponComponent::StopShoot_Implementation()
 {
     if (!CurrentWeapon)

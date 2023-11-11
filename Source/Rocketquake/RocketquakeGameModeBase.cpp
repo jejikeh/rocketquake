@@ -3,6 +3,8 @@
 
 #include "RocketquakeGameModeBase.h"
 
+#include "RocketquakewGameStateBase.h"
+#include "Components/RespawnComponent.h"
 #include "Player/RocketQuakeCharacter.h"
 #include "Player/RocketquakePlayerController.h"
 #include "Player/RocketquakePlayerState.h"
@@ -14,15 +16,42 @@ ARocketquakeGameModeBase::ARocketquakeGameModeBase()
     PlayerControllerClass = ARocketquakePlayerController::StaticClass();
     HUDClass = ARocketquakeHUD::StaticClass();
     PlayerStateClass = ARocketquakePlayerState::StaticClass();
+    GameStateClass = ARocketquakewGameStateBase::StaticClass();
 }
 
 void ARocketquakeGameModeBase::StartPlay()
 {
     Super::StartPlay();
 
+    if (const auto GameStateBase = GetGameState<ARocketquakewGameStateBase>())
+    {
+        GameStateBase->SetRounds(GameData.Rounds);
+    }
+
     CurrentRound = 1;
     StartRound();
     CreateTeamsInfo();
+}
+
+void ARocketquakeGameModeBase::Killed(AController *Killer, AController *Victim)
+{
+    const auto KilledPlayerState = Killer ? Cast<ARocketquakePlayerState>(Killer->PlayerState) : nullptr;
+    const auto VictimPlayerState = Victim ? Cast<ARocketquakePlayerState>(Victim->PlayerState) : nullptr;
+
+    if (KilledPlayerState)
+    {
+        KilledPlayerState->AddKill();
+    }
+
+    if (VictimPlayerState)
+    {
+        VictimPlayerState->AddDeath();
+    }
+
+    if (Victim)
+    {
+        StartRespawn(Victim);
+    }
 }
 
 void ARocketquakeGameModeBase::GenericPlayerInitialization(AController *C)
@@ -37,14 +66,28 @@ void ARocketquakeGameModeBase::GenericPlayerInitialization(AController *C)
 void ARocketquakeGameModeBase::StartRound()
 {
     RoundCountDown = GameData.RoundTimeSecs;
+
+    if (const auto GameStateBase = GetGameState<ARocketquakewGameStateBase>())
+    {
+        GameStateBase->UpdateCurrentRound(CurrentRound);
+        GameStateBase->UpdateRoundCountDown(GameData.RoundTimeSecs);
+    }
+    
     GetWorldTimerManager().SetTimer(GameRoundTimerHandle, this, &ARocketquakeGameModeBase::GameTimerUpdate, 1.0f, true);
 }
 
 void ARocketquakeGameModeBase::GameTimerUpdate()
 {
     RoundCountDown--;
+
+    if (const auto GameStateBase = GetGameState<ARocketquakewGameStateBase>())
+    {
+        GameStateBase->UpdateRoundCountDown(RoundCountDown);
+    }
+    
     if (RoundCountDown <= 0)
     {
+        // TODO: Delete that? Move to event tick?
         GetWorldTimerManager().ClearTimer(GameRoundTimerHandle);
 
         if (CurrentRound < GameData.Rounds)
@@ -55,7 +98,8 @@ void ARocketquakeGameModeBase::GameTimerUpdate()
         }
         else
         {
-            
+            UE_LOG(LogTemp, Warning, TEXT("Game Over"));
+            LogPlayerInfo();
         }
     }
 }
@@ -136,4 +180,41 @@ void ARocketquakeGameModeBase::SetPlayerColor(AController *Controller)
     }
 
     Character->SetPlayerColor(PlayerState->GetTeamColor());
+}
+
+void ARocketquakeGameModeBase::LogPlayerInfo()
+{
+    for (auto It = GetWorld()->GetControllerIterator(); It; ++It)
+    {
+        const auto Controller = It->Get();
+        if (!Controller)
+        {
+            continue;
+        }
+
+        const auto PlayerState = Cast<ARocketquakePlayerState>(Controller->PlayerState);
+        if (!PlayerState)
+        {
+            continue;
+        }
+
+        PlayerState->LogInfo();
+    }
+}
+
+void ARocketquakeGameModeBase::RespawnRequest(AController *Controller)
+{
+    ResetOnePlayer(Controller);
+}
+
+void ARocketquakeGameModeBase::StartRespawn(const AController *Controller) const
+{
+    const auto RespawnComponent = Controller->FindComponentByClass<URespawnComponent>();
+    if (!RespawnComponent)
+    {
+        return;
+    }
+    
+    UE_LOG(LogTemp, Warning, TEXT("StartRespawn"));
+    RespawnComponent->Respawn(GameData.RespawnTime);
 }

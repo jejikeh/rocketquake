@@ -3,6 +3,7 @@
 
 #include "Pickup/RocketquakePickup.h"
 
+#include "NiagaraFunctionLibrary.h"
 #include "Components/SphereComponent.h"
 
 // Sets default values
@@ -52,6 +53,8 @@ void ARocketquakePickup::PickupWasCollected_Implementation()
 {
     SphereComponent->SetCollisionResponseToAllChannels(ECR_Ignore);
     GetRootComponent()->SetVisibility(false, true);
+
+    UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), PickupFX, GetActorLocation());
 
     FTimerHandle RespawnTimerHandle;
     GetWorldTimerManager().SetTimer(RespawnTimerHandle, this, &ARocketquakePickup::Respawn, RespawnTime, false);

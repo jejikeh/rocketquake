@@ -5,6 +5,8 @@
 #include "Camera/CameraComponent.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
+#include "NiagaraComponent.h"
+#include "NiagaraFunctionLibrary.h"
 #include "Components/CapsuleComponent.h"
 #include "Components/HealthComponent.h"
 #include "Components/RocketquakeMovementComponent.h"
@@ -54,6 +56,12 @@ void ARocketQuakeCharacter::BeginPlay()
 void ARocketQuakeCharacter::Tick(float DeltaTime)
 {
     Super::Tick(DeltaTime);
+
+    if (bIsFirstTimeTick)
+    {
+        Multicast_SpawnNiagaraSpawnSystemOnSpawn();
+        bIsFirstTimeTick = false;
+    }
 }
 
 void ARocketQuakeCharacter::SetupPlayerInputComponent(UInputComponent *PlayerInputComponent)
@@ -65,14 +73,21 @@ void ARocketQuakeCharacter::SetupPlayerInputComponent(UInputComponent *PlayerInp
         EnhancedInputComponent->BindAction(MoveForwardAction, ETriggerEvent::Triggered, this, &ARocketQuakeCharacter::MoveForwardCharacter);
         EnhancedInputComponent->BindAction(MoveForwardAction, ETriggerEvent::Completed, this,
             &ARocketQuakeCharacter::ResetMoveForwardCharacter);
+
         EnhancedInputComponent->BindAction(MoveRightAction, ETriggerEvent::Triggered, this, &ARocketQuakeCharacter::MoveRightCharacter);
+
         EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &ARocketQuakeCharacter::LookCharacter);
+
         EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Triggered, this, &ARocketQuakeCharacter::Jump);
+
         EnhancedInputComponent->BindAction(SprintAction, ETriggerEvent::Started, this, &ARocketQuakeCharacter::HandleStartSprintAction);
         EnhancedInputComponent->BindAction(SprintAction, ETriggerEvent::Completed, this, &ARocketQuakeCharacter::HandleStopSprintAction);
+
         EnhancedInputComponent->BindAction(ShootAction, ETriggerEvent::Started, WeaponComponent, &UWeaponComponent::StartShoot);
         EnhancedInputComponent->BindAction(ShootAction, ETriggerEvent::Completed, WeaponComponent, &UWeaponComponent::StopShoot);
+
         EnhancedInputComponent->BindAction(SwitchWeaponAction, ETriggerEvent::Started, WeaponComponent, &UWeaponComponent::NextWeapon);
+
         EnhancedInputComponent->BindAction(ReloadAction, ETriggerEvent::Started, WeaponComponent, &UWeaponComponent::Reload);
     }
 }
@@ -119,7 +134,7 @@ void ARocketQuakeCharacter::Multicast_ResetMoveForwardCharacter_Implementation()
     {
         Server_SetMovingForward(false);
     }
-    
+
     Server_SetMovingForward_Implementation(false);
 }
 
@@ -158,13 +173,13 @@ void ARocketQuakeCharacter::Multicast_OnDeath_Implementation()
 {
     // PlayAnimMontage(DeathAnimMontage);
 
-    GetCapsuleComponent()->SetCollisionResponseToChannels(ECollisionResponse::ECR_Ignore);
+    GetCapsuleComponent()->SetCollisionResponseToChannels(ECR_Ignore);
     WeaponComponent->StopShoot();
-    
+
     Server_OnDeath();
-    
+
     GetCharacterMovement()->DisableMovement();
-    
+
     // SetLifeSpan(5.0f);
     //
     // if (Controller)
@@ -172,11 +187,10 @@ void ARocketQuakeCharacter::Multicast_OnDeath_Implementation()
     //     Controller->ChangeState(NAME_Spectating);
     // }
     //
-    
 
     GetMesh()->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
     GetMesh()->SetSimulatePhysics(true);
-    
+
 }
 
 void ARocketQuakeCharacter::Server_OnDeath_Implementation()
@@ -208,6 +222,20 @@ void ARocketQuakeCharacter::Multicast_ToggleSprint_Implementation()
     }
 }
 
+void ARocketQuakeCharacter::Multicast_SpawnNiagaraSpawnSystemOnSpawn_Implementation()
+{
+    auto SpawnSystemEffect = UNiagaraFunctionLibrary::SpawnSystemAtLocation(
+       GetWorld(),
+       NiagaraSpawnSystemEffect,
+       GetActorLocation(),
+       GetActorRotation());
+
+    if (SpawnSystemEffect)
+    {
+        SetNiagaraSkeletalMesh(SpawnSystemEffect);
+    }
+}
+
 void ARocketQuakeCharacter::HandleStartSprintAction()
 {
     Server_SetSprint(true);
@@ -230,4 +258,5 @@ void ARocketQuakeCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>
     Super::GetLifetimeReplicatedProps(OutLifetimeProps);
     DOREPLIFETIME(ARocketQuakeCharacter, bIsSprinting);
     DOREPLIFETIME(ARocketQuakeCharacter, bIsMovingForward);
+    DOREPLIFETIME(ARocketQuakeCharacter, bIsFirstTimeTick);
 }

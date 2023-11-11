@@ -6,6 +6,7 @@
 #include "GameFramework/Actor.h"
 #include "RocketquakePickup.generated.h"
 
+class UNiagaraSystem;
 class USphereComponent;
 
 UCLASS()
@@ -23,6 +24,9 @@ protected:
 
     UPROPERTY(VisibleAnywhere, Category = "Pickup")
     USphereComponent* SphereComponent;
+
+    UPROPERTY(EditDefaultsOnly, Category = "VFX")
+    UNiagaraSystem* PickupFX;
 
     UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Pickup")
     float RespawnTime = 15.0f;

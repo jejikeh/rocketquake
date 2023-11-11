@@ -3,6 +3,7 @@
 
 #include "Components/HealthComponent.h"
 #include "Net/UnrealNetwork.h"
+#include "Rocketquake/RocketquakeGameModeBase.h"
 
 UHealthComponent::UHealthComponent()
 {
@@ -48,6 +49,7 @@ void UHealthComponent::OnTakeAnyDamageHandle(AActor *DamagedActor, float Damage,
 
     if (IsDead())
     {
+        Killed(InstigatedBy);
         OnDeath.Broadcast();
     }
     else if (bAutoHeal)
@@ -89,6 +91,20 @@ void UHealthComponent::Client_PlayCameraShake_Implementation()
     }
 
     Controller->PlayerCameraManager->StartCameraShake(CameraShake);
+}
+
+void UHealthComponent::Killed(AController *Killer)
+{
+    const auto GameMode = Cast<ARocketquakeGameModeBase>(GetWorld()->GetAuthGameMode());
+    if (!GameMode)
+    {
+        return;
+    }
+
+    const auto Player = Cast<APawn>(GetOwner());
+    const auto Victim = Player ? Player->Controller : nullptr;
+
+    GameMode->Killed(Killer, Victim);
 }
 
 void UHealthComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty> &OutLifetimeProps) const

@@ -34,8 +34,42 @@ public:
     {
         return TeamColor;
     }
+    
+    void AddKill()
+    {
+        KillsNum++;
+    }
+
+    void AddDeath()
+    {
+        DeathNus++;
+    }
+
+    int32 GetKillsNum() const
+    {
+        return KillsNum;
+    }
+
+    int32 GetDeathNum() const
+    {
+        return DeathNus;
+    }
+
+    void LogInfo();
+
+protected:
+    virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty> &OutLifetimeProps) const override;
 
 private:
+    UPROPERTY(Replicated)
     int32 TeamID;
+
+    UPROPERTY(Replicated)
     FLinearColor TeamColor;
+
+    UPROPERTY(Replicated)
+    int32 KillsNum = 0;
+
+    UPROPERTY(Replicated)
+    int32 DeathNus = 0;
 };

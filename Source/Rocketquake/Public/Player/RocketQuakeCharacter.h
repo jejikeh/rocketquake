@@ -3,9 +3,12 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "InputActionValue.h"
 #include "GameFramework/Character.h"
 #include "RocketQuakeCharacter.generated.h"
 
+class UNiagaraComponent;
+class UNiagaraSystem;
 class ARocketquakeWeapon;
 struct FInputActionValue;
 
@@ -33,6 +36,9 @@ public:
 
 protected:
     virtual void BeginPlay() override;
+
+    UFUNCTION(BlueprintImplementableEvent)
+    void SetNiagaraSkeletalMesh(UNiagaraComponent *NiagaraComponent);
 
     UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Camera")
     class UCameraComponent* CameraComponent;
@@ -89,6 +95,9 @@ private:
     UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Materials", meta = (AllowPrivateAccess = "true"))
     FName MaterialColorName = "Paint Color";
 
+    UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "FX", meta = (AllowPrivateAccess = "true"))
+    UNiagaraSystem* NiagaraSpawnSystemEffect;
+
     float BaseWalkSpeed;
 
     void MoveForwardCharacter(const FInputActionValue& Value);
@@ -98,8 +107,7 @@ private:
     UFUNCTION(NetMulticast, Reliable)
     void Multicast_ResetMoveForwardCharacter();
     void Multicast_ResetMoveForwardCharacter_Implementation();
-
-
+    
     void MoveRightCharacter(const FInputActionValue& Value);
     
     void LookCharacter(const FInputActionValue& Value);
@@ -126,12 +134,19 @@ private:
     UFUNCTION(Client, Reliable)
     void Client_OnHealthChanged();
     void Client_OnHealthChanged_Implementation();
-
+    
     UFUNCTION(NetMulticast, Reliable)
     void Multicast_ToggleSprint();
     void Multicast_ToggleSprint_Implementation();
+
+    UFUNCTION(NetMulticast, Unreliable)
+    void Multicast_SpawnNiagaraSpawnSystemOnSpawn();
+    void Multicast_SpawnNiagaraSpawnSystemOnSpawn_Implementation();
     
     void HandleStartSprintAction();
 
     void HandleStopSprintAction();
+
+    UPROPERTY(Replicated)
+    bool bIsFirstTimeTick = true;
 };

@@ -26,6 +26,9 @@ public:
 
     UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Game")
     TArray<FLinearColor> TeamColors;
+
+    UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Game")
+    int32 RespawnTime = 5;
 };
 
 /**
@@ -43,6 +46,25 @@ public:
 
     UPROPERTY(EditDefaultsOnly, Category = "Game")
     FGameData GameData;
+
+    void Killed(AController* Killer, AController* Victim);
+
+    FGameData GetGameData() const
+    {
+        return GameData;
+    }
+
+    int32 GetCurrentRound() const
+    {
+        return CurrentRound;
+    }
+
+    int32 GetRoundCountDown() const
+    {
+        return RoundCountDown;
+    }
+
+    void RespawnRequest(AController* Controller);
 
 protected:
     virtual void GenericPlayerInitialization(AController *C) override;
@@ -69,4 +91,8 @@ private:
     FLinearColor GetColorByTeamId(int32 TeamId) const;
 
     void SetPlayerColor(AController *Controller);
+
+    void LogPlayerInfo();
+
+    void StartRespawn(const AController* Controller) const;
 };

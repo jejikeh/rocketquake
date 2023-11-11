@@ -43,7 +43,7 @@ void ALauncherProjectile::HandleHit_Implementation(FHitResult Hit)
     ProjectileMovementComponent->StopMovementImmediately();
     RadialForceComponent->FireImpulse();
 
-    DrawDebugSphere(GetWorld(), GetActorLocation(), RadialForceComponent->Radius, 12, FColor::Red, false, 5.0f);
+    // DrawDebugSphere(GetWorld(), GetActorLocation(), RadialForceComponent->Radius, 12, FColor::Red, false, 5.0f);
     WeaponFXComponent->PlayImpactFx(Hit);
 
     const auto Player = Cast<APlayerController>(UGameplayStatics::GetPlayerController(GetWorld(), 0));
