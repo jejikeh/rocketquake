@@ -15,8 +15,19 @@ class ROCKETQUAKE_API URespawnComponent : public UActorComponent
 public:
     URespawnComponent();
 
-    void Respawn(int RespawnTime);
+    UFUNCTION(Client, Unreliable)
+    void Client_Respawn(int RespawnTime);
+    void Client_Respawn_Implementation(int RespawnTime);
 
+    int32 GetRespawnCountDown() const
+    {
+        return RespawnCountDown;
+    }
+
+    bool IsRespawnInProgress() const;
+
+protected:
+    
 private:
     FTimerHandle RespawnTimerHandle;
 

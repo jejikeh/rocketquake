@@ -3,6 +3,7 @@
 
 #include "RocketquakeGameModeBase.h"
 
+#include "EngineUtils.h"
 #include "RocketquakewGameStateBase.h"
 #include "Components/RespawnComponent.h"
 #include "Player/RocketQuakeCharacter.h"
@@ -98,8 +99,7 @@ void ARocketquakeGameModeBase::GameTimerUpdate()
         }
         else
         {
-            UE_LOG(LogTemp, Warning, TEXT("Game Over"));
-            LogPlayerInfo();
+            GameOver();
         }
     }
 }
@@ -216,5 +216,19 @@ void ARocketquakeGameModeBase::StartRespawn(const AController *Controller) const
     }
     
     UE_LOG(LogTemp, Warning, TEXT("StartRespawn"));
-    RespawnComponent->Respawn(GameData.RespawnTime);
+    RespawnComponent->Client_Respawn(GameData.RespawnTime);
+    if (HasAuthority())
+    {
+        RespawnComponent->Client_Respawn_Implementation(GameData.RespawnTime);
+    }
+}
+
+void ARocketquakeGameModeBase::GameOver()
+{
+    LogPlayerInfo();
+    
+    if (const auto GameStateBase = GetGameState<ARocketquakewGameStateBase>())
+    {
+        GameStateBase->Multicast_EndGame();
+    }
 }

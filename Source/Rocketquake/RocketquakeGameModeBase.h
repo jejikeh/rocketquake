@@ -95,4 +95,6 @@ private:
     void LogPlayerInfo();
 
     void StartRespawn(const AController* Controller) const;
+
+    void GameOver();
 };

@@ -36,6 +36,10 @@ public:
         return Rounds;
     }
 
+    UFUNCTION(NetMulticast, Reliable)
+    void Multicast_EndGame();
+    void Multicast_EndGame_Implementation();
+
 protected:
     virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
     

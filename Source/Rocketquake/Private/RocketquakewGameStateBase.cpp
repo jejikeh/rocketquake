@@ -3,6 +3,7 @@
 
 #include "RocketquakewGameStateBase.h"
 
+#include "EngineUtils.h"
 #include "Net/UnrealNetwork.h"
 
 void ARocketquakewGameStateBase::UpdateRoundCountDown(const int32 NewRoundCountDown)
@@ -26,6 +27,18 @@ void ARocketquakewGameStateBase::SetRounds(const int32 NewRounds)
     if (HasAuthority())
     {
         Rounds = NewRounds;
+    }
+}
+
+void ARocketquakewGameStateBase::Multicast_EndGame_Implementation()
+{
+    for (const auto Pawn : TActorRange<APawn>(GetWorld()))
+    {
+        if (Pawn) 
+        {
+            Pawn->TurnOff();
+            Pawn->DisableInput(nullptr);
+        }
     }
 }
 

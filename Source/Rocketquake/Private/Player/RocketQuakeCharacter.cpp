@@ -10,6 +10,7 @@
 #include "Components/CapsuleComponent.h"
 #include "Components/HealthComponent.h"
 #include "Components/RocketquakeMovementComponent.h"
+#include "Components/SphereComponent.h"
 #include "Components/WeaponComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "Net/UnrealNetwork.h"
@@ -31,6 +32,11 @@ ARocketQuakeCharacter::ARocketQuakeCharacter(const FObjectInitializer &ObjectIni
     HealthComponent->SetIsReplicated(true);
     HealthComponent->SetNetAddressable();
 
+    CameraCollisionSphereComponent = CreateDefaultSubobject<USphereComponent>(TEXT("CameraCollisionSphereComponent"));
+    CameraCollisionSphereComponent->SetupAttachment(CameraComponent);
+    CameraCollisionSphereComponent->SetSphereRadius(15.0f);
+    CameraCollisionSphereComponent->SetCollisionResponseToAllChannels(ECR_Overlap);
+
     WeaponComponent = CreateDefaultSubobject<UWeaponComponent>("WeaponComponent");
 }
 
@@ -43,6 +49,9 @@ void ARocketQuakeCharacter::BeginPlay()
     HealthComponent->OnDeath.AddDynamic(this, &ARocketQuakeCharacter::Multicast_OnDeath);
     HealthComponent->OnHealthChanged.AddDynamic(this, &ARocketQuakeCharacter::Client_OnHealthChanged);
     Client_OnHealthChanged();
+
+    CameraCollisionSphereComponent->OnComponentBeginOverlap.AddDynamic(this, &ARocketQuakeCharacter::OnCameraCollisionBeginOverlap);
+    CameraCollisionSphereComponent->OnComponentEndOverlap.AddDynamic(this, &ARocketQuakeCharacter::OnCameraCollisionEndOverlap);
 
     if (const auto PlayerController = Cast<ARocketquakePlayerController>(GetController()))
     {
@@ -114,6 +123,24 @@ void ARocketQuakeCharacter::SetPlayerColor_Implementation(FLinearColor NewColor)
     }
 
     MaterialInstance->SetVectorParameterValue(MaterialColorName, NewColor);
+}
+
+void ARocketQuakeCharacter::OnCameraCollisionBeginOverlap(UPrimitiveComponent *OverlappedComponent, AActor *OtherActor,
+    UPrimitiveComponent *OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult &SweepResult)
+{
+    CheckCameraOverlap();
+}
+
+void ARocketQuakeCharacter::CheckCameraOverlap() const
+{
+    const auto HideMesh = CameraCollisionSphereComponent->IsOverlappingComponent(GetCapsuleComponent());
+    GetMesh()->SetOwnerNoSee(HideMesh);
+}
+
+void ARocketQuakeCharacter::OnCameraCollisionEndOverlap(UPrimitiveComponent *OverlappedComponent, AActor *OtherActor,
+    UPrimitiveComponent *OtherComp, int32 OtherBodyIndex)
+{
+    CheckCameraOverlap();
 }
 
 void ARocketQuakeCharacter::MoveForwardCharacter(const FInputActionValue &Value)
