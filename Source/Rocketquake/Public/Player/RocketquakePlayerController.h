@@ -4,8 +4,10 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/PlayerController.h"
+#include "Types/GameMatchStates.h"
 #include "RocketquakePlayerController.generated.h"
 
+class UInputAction;
 class URespawnComponent;
 /**
  * 
@@ -31,4 +33,21 @@ protected:
 
     UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Player")
     URespawnComponent* RespawnComponent;
+
+    virtual void SetupInputComponent() override;
+
+    virtual void BeginPlay() override;
+    
+    UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Input")
+    UInputAction* PauseAction;
+
+private:
+    void OnPauseGame();
+
+    UFUNCTION()
+    void OnPlayerStateChanged(EPlayerGameState PlayerGameState);
+
+    FTimerHandle WaitPlayerStateTimer;
+
+    void WaitPlayerState();
 };

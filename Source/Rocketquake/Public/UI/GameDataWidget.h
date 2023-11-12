@@ -29,6 +29,9 @@ public:
 
     UFUNCTION(BlueprintCallable, Category = "UI")
     int32 GetRoundCountDown() const;
+    
+    UFUNCTION(BlueprintCallable, Category = "UI")
+    int32 GetDeathsCount() const;
 
 private:
     ARocketquakeGameModeBase* GetGameMode() const;

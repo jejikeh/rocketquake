@@ -5,6 +5,7 @@
 
 #include "EngineUtils.h"
 #include "Net/UnrealNetwork.h"
+#include "Rocketquake/RocketquakeGameModeBase.h"
 
 void ARocketquakewGameStateBase::UpdateRoundCountDown(const int32 NewRoundCountDown)
 {
@@ -30,6 +31,15 @@ void ARocketquakewGameStateBase::SetRounds(const int32 NewRounds)
     }
 }
 
+void ARocketquakewGameStateBase::SetCurrentMatchState(ERocketquakeMatchState NewState)
+{
+    if (HasAuthority())
+    {
+        CurrentMatchState = NewState;
+        OnMatchStateChanged.Broadcast(CurrentMatchState);
+    }
+}
+
 void ARocketquakewGameStateBase::Multicast_EndGame_Implementation()
 {
     for (const auto Pawn : TActorRange<APawn>(GetWorld()))
@@ -49,4 +59,10 @@ void ARocketquakewGameStateBase::GetLifetimeReplicatedProps(TArray<FLifetimeProp
     DOREPLIFETIME(ARocketquakewGameStateBase, RoundCountDown);
     DOREPLIFETIME(ARocketquakewGameStateBase, CurrentRound);
     DOREPLIFETIME(ARocketquakewGameStateBase, Rounds);
+    DOREPLIFETIME(ARocketquakewGameStateBase, CurrentMatchState);
+}
+
+void ARocketquakewGameStateBase::OnRep_CurrentMatchState()
+{
+    OnMatchStateChanged.Broadcast(CurrentMatchState);
 }

@@ -1,0 +1,32 @@
+// Rocketquake, jejikeh
+
+#pragma once
+
+#include "CoreMinimal.h"
+#include "Blueprint/UserWidget.h"
+#include "MenuWidget.generated.h"
+
+/**
+ * 
+ */
+UCLASS()
+class ROCKETQUAKE_API UMenuWidget : public UUserWidget
+{
+    GENERATED_BODY()
+
+protected:
+    virtual void NativeOnInitialized() override;
+
+    UPROPERTY(meta = (BindWidget))
+    class UButton* StartButton;
+
+    UPROPERTY(meta = (BindWidget))
+    UButton* ExitButton;
+
+private:
+    UFUNCTION()
+    void OnStartButtonClicked();
+
+    UFUNCTION()
+    void OnExitButtonClicked();
+};

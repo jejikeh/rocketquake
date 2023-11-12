@@ -4,7 +4,10 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/PlayerState.h"
+#include "Types/GameMatchStates.h"
 #include "RocketquakePlayerState.generated.h"
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnPlayerGameStateChanged, EPlayerGameState, NewState);
 
 /**
  * 
@@ -55,10 +58,21 @@ public:
         return DeathNus;
     }
 
+    void SetCurrentGameState(EPlayerGameState NewState);
+
+    EPlayerGameState GetCurrentGameState() const
+    {
+        return CurrentGameState;
+    }
+
     void LogInfo();
+
+    FOnPlayerGameStateChanged OnPlayerGameStateChanged;
 
 protected:
     virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty> &OutLifetimeProps) const override;
+    
+    virtual void BeginPlay() override;
 
 private:
     UPROPERTY(Replicated)
@@ -72,4 +86,9 @@ private:
 
     UPROPERTY(Replicated)
     int32 DeathNus = 0;
+
+    EPlayerGameState CurrentGameState;
+
+    UFUNCTION()
+    void OnMatchStateChanged(ERocketquakeMatchState NewState);
 };

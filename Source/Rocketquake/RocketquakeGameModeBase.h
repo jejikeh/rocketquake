@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/GameModeBase.h"
+#include "Types/GameMatchStates.h"
 #include "RocketquakeGameModeBase.generated.h"
 
 USTRUCT(BlueprintType)
@@ -71,6 +72,8 @@ protected:
 
 private:
     // Spawn players?
+
+    ERocketquakeMatchState CurrentMatchState = ERocketquakeMatchState::WaitingStart;
     
     int32 CurrentRound = 1;
 
@@ -97,4 +100,6 @@ private:
     void StartRespawn(const AController* Controller) const;
 
     void GameOver();
+
+    void SetMatchState(ERocketquakeMatchState NewState);
 };

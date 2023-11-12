@@ -224,9 +224,7 @@ void ARocketQuakeCharacter::Server_OnDeath_Implementation()
 {
     if (Controller)
     {
-        ARocketquakePlayerController *RocketQuakeController = Cast<ARocketquakePlayerController>(Controller.Get());
-
-        if (RocketQuakeController)
+        if (ARocketquakePlayerController *RocketQuakeController = Cast<ARocketquakePlayerController>(Controller.Get()))
         {
             RocketQuakeController->StartSpectating();
         }

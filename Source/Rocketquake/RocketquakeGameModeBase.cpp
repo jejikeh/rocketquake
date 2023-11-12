@@ -32,6 +32,8 @@ void ARocketquakeGameModeBase::StartPlay()
     CurrentRound = 1;
     StartRound();
     CreateTeamsInfo();
+
+    SetMatchState(ERocketquakeMatchState::InProgress);
 }
 
 void ARocketquakeGameModeBase::Killed(AController *Killer, AController *Victim)
@@ -143,6 +145,7 @@ void ARocketquakeGameModeBase::CreateTeamsInfo()
 
         PlayerState->SetTeamID(TeamID);
         PlayerState->SetTeamColor(GetColorByTeamId(TeamID));
+        PlayerState->SetPlayerName(Controller->IsPlayerController() ? "Player" : "Bot");
         SetPlayerColor(Controller);
 
         TeamID %= GameData.Players + 1;
@@ -230,5 +233,23 @@ void ARocketquakeGameModeBase::GameOver()
     if (const auto GameStateBase = GetGameState<ARocketquakewGameStateBase>())
     {
         GameStateBase->Multicast_EndGame();
+    }
+
+    SetMatchState(ERocketquakeMatchState::GameOver);
+}
+
+
+void ARocketquakeGameModeBase::SetMatchState(ERocketquakeMatchState NewState)
+{
+    if (CurrentMatchState == NewState)
+    {
+        return;
+    }
+
+    CurrentMatchState = NewState;
+    
+    if (const auto GameStateBase = GetGameState<ARocketquakewGameStateBase>())
+    {
+        GameStateBase->SetCurrentMatchState(NewState);
     }
 }

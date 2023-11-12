@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/HUD.h"
+#include "Types/GameMatchStates.h"
 #include "RocketquakeHUD.generated.h"
 
 /**
@@ -21,5 +22,25 @@ protected:
     UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "UI")
     TSubclassOf<UUserWidget> PlayerHudWidgetClass;
 
+    UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "UI")
+    TSubclassOf<UUserWidget> PauseWidgetClass;
+
+    UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "UI")
+    TSubclassOf<UUserWidget> GameOverWidgetClass;
+    
     virtual void BeginPlay() override;
+
+private:
+    UFUNCTION()
+    void OnPlayerGameStateChanged(EPlayerGameState NewState);
+
+    UPROPERTY()
+    TMap<EPlayerGameState, UUserWidget*> GameWidgets;
+
+    UPROPERTY()
+    UUserWidget* CurrentWidget = nullptr;
+
+    FTimerHandle WaitPlayerStateTimer;
+
+    void WaitPlayerState();
 };

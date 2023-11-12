@@ -36,6 +36,17 @@ int32 UGameDataWidget::GetRoundCountDown() const
     return RocketquakewGameStateBase ? RocketquakewGameStateBase->GetRoundCountDown() : 0;
 }
 
+int32 UGameDataWidget::GetDeathsCount() const
+{
+    const auto PlayerState = GetPlayerState();
+    if (!PlayerState)
+    {
+        return 0;
+    }
+
+    return PlayerState->GetDeathNum();
+}
+
 ARocketquakeGameModeBase *UGameDataWidget::GetGameMode() const
 {
     return Cast<ARocketquakeGameModeBase>(GetWorld()->GetAuthGameMode());
