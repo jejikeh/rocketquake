@@ -60,15 +60,24 @@ protected:
 
     virtual void BeginPlay() override;
 
+    virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
+
 private:
     FTimerHandle ShotTimerHandle;
 
     UPROPERTY()
     UNiagaraComponent* MuzzleFComponent;
 
+    UPROPERTY()
+    UAudioComponent* FireAudioComponent;
+
     UFUNCTION(NetMulticast, Reliable)
     void InitMuzzleFX();
     void InitMuzzleFX_Implementation();
+
+    UFUNCTION(NetMulticast, Reliable)
+    void Multicast_StopShooting();
+    void Multicast_StopShooting_Implementation();
 
     UFUNCTION(NetMulticast, Reliable)
     void SetMuzzleFXVisibility(bool bVisible);

@@ -3,7 +3,9 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "OnlineSubsystem.h"
 #include "Engine/GameInstance.h"
+#include "Interfaces/OnlineSessionInterface.h"
 #include "RocketquakeGameInstance.generated.h"
 
 /**
@@ -15,6 +17,8 @@ class ROCKETQUAKE_API URocketquakeGameInstance : public UGameInstance
     GENERATED_BODY()
 
 public:
+    URocketquakeGameInstance();
+    
     FName GetMainMapName() const
     {
         return MainMapName;
@@ -24,6 +28,12 @@ public:
     {
         return MenuMapName;
     }
+
+    UFUNCTION(BlueprintCallable)
+    void CreateSession();
+
+    UFUNCTION(BlueprintCallable)
+    void JoinMatchSession();
     
 protected:
     UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "UI")
@@ -31,4 +41,18 @@ protected:
     
     UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "UI")
     FName MenuMapName = NAME_None;
+
+    UFUNCTION()
+    void OnCreateSessionComplete(FName Name, bool bSuccess);
+
+    UFUNCTION()
+    void OnFindSessionsComplete(bool bSuccess);
+
+    void OnJoinSessionComplete(FName Name, EOnJoinSessionCompleteResult::Type Result);
+    
+    virtual void Init() override;
+
+    IOnlineSessionPtr SessionInterface;
+
+    TSharedPtr<FOnlineSessionSearch> SessionSearch;
 };

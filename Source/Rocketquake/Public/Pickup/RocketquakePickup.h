@@ -6,6 +6,7 @@
 #include "GameFramework/Actor.h"
 #include "RocketquakePickup.generated.h"
 
+class USoundCue;
 class UNiagaraSystem;
 class USphereComponent;
 
@@ -30,6 +31,9 @@ protected:
 
     UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Pickup")
     float RespawnTime = 15.0f;
+
+    UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Audio")
+    USoundCue* PickupSound;
 
     virtual void NotifyActorBeginOverlap(AActor *OtherActor) override;
 

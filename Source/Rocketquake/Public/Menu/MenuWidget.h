@@ -23,10 +23,22 @@ protected:
     UPROPERTY(meta = (BindWidget))
     UButton* ExitButton;
 
+    UPROPERTY(meta = (BindWidget))
+    UButton* HostServerButton;
+
+    UPROPERTY(meta = (BindWidget))
+    UButton* ExploreServersButton;
+
 private:
     UFUNCTION()
     void OnStartButtonClicked();
 
     UFUNCTION()
     void OnExitButtonClicked();
+
+    UFUNCTION()
+    void OnHostServerClicked();
+
+    UFUNCTION()
+    void OnExploreServersClicked();
 };

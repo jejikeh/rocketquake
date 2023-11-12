@@ -5,6 +5,8 @@
 
 #include "NiagaraFunctionLibrary.h"
 #include "Components/SphereComponent.h"
+#include "Kismet/GameplayStatics.h"
+#include "Sound/SoundCue.h"
 
 // Sets default values
 ARocketquakePickup::ARocketquakePickup()
@@ -58,6 +60,8 @@ void ARocketquakePickup::PickupWasCollected_Implementation()
 
     FTimerHandle RespawnTimerHandle;
     GetWorldTimerManager().SetTimer(RespawnTimerHandle, this, &ARocketquakePickup::Respawn, RespawnTime, false);
+
+    UGameplayStatics::PlaySoundAtLocation(GetWorld(), PickupSound, GetActorLocation());
 }
 
 void ARocketquakePickup::Respawn()

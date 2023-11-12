@@ -4,6 +4,8 @@
 #include "Weapon/RocketquakeLauncherWeapon.h"
 #include "Weapon/LauncherProjectile.h"
 #include "GameFramework/Character.h"
+#include "Kismet/GameplayStatics.h"
+#include "Sound/SoundCue.h"
 
 
 void ARocketquakeLauncherWeapon::StartShoot()
@@ -59,6 +61,7 @@ void ARocketquakeLauncherWeapon::MakeShot()
 void ARocketquakeLauncherWeapon::Multicast_InitNiagaraSystem_Implementation()
 {
     SpawnMuzzleFlash();
+    UGameplayStatics::SpawnSoundAttached(FireSound, WeaponMesh, "MuzzleFlashSocket");
 }
 
 void ARocketquakeLauncherWeapon::Server_SpawnLauncherProjectile_Implementation(const FTransform Transform, const FVector Direction)

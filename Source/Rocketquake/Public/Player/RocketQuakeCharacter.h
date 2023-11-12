@@ -7,6 +7,7 @@
 #include "GameFramework/Character.h"
 #include "RocketQuakeCharacter.generated.h"
 
+class USoundCue;
 class USphereComponent;
 class UNiagaraComponent;
 class UNiagaraSystem;
@@ -109,6 +110,9 @@ private:
 
     UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "FX", meta = (AllowPrivateAccess = "true"))
     UNiagaraSystem* NiagaraSpawnSystemEffect;
+
+    UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Audio", meta = (AllowPrivateAccess = "true"))
+    USoundCue* DeathSound;
 
     float BaseWalkSpeed;
 

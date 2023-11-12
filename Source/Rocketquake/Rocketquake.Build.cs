@@ -15,7 +15,9 @@ public class Rocketquake : ModuleRules
 			"InputCore", 
 			"EnhancedInput",
 			"Niagara",
-			"PhysicsCore"
+			"PhysicsCore",
+			"OnlineSubsystem",
+			"OnlineSubsystemSteam"
 		});
 
 		PrivateDependencyModuleNames.AddRange(new string[] {  });

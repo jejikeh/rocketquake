@@ -20,6 +20,16 @@ void UMenuWidget::NativeOnInitialized()
     {
         ExitButton->OnClicked.AddDynamic(this, &UMenuWidget::OnExitButtonClicked);
     }
+
+    if (HostServerButton)
+    {
+        HostServerButton->OnClicked.AddDynamic(this, &UMenuWidget::OnHostServerClicked);
+    }
+
+    if (ExploreServersButton)
+    {
+        ExploreServersButton->OnClicked.AddDynamic(this, &UMenuWidget::OnExploreServersClicked);
+    }
 }
 
 void UMenuWidget::OnStartButtonClicked()
@@ -43,4 +53,26 @@ void UMenuWidget::OnStartButtonClicked()
 void UMenuWidget::OnExitButtonClicked()
 {
     UKismetSystemLibrary::QuitGame(this, GetOwningPlayer(), EQuitPreference::Quit, true);
+}
+
+void UMenuWidget::OnHostServerClicked()
+{
+    const auto GameInstance = GetWorld()->GetGameInstance<URocketquakeGameInstance>();
+    if (!GameInstance)
+    {
+        return;
+    }
+
+    GameInstance->CreateSession();
+}
+
+void UMenuWidget::OnExploreServersClicked()
+{
+    const auto GameInstance = GetWorld()->GetGameInstance<URocketquakeGameInstance>();
+    if (!GameInstance)
+    {
+        return;
+    }
+
+    GameInstance->JoinMatchSession();
 }

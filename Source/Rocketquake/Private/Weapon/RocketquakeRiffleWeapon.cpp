@@ -8,6 +8,9 @@
 #include "Engine/DamageEvents.h"
 #include "GameFramework/Character.h"
 #include "NiagaraComponent.h"
+#include "Components/AudioComponent.h"
+#include "Kismet/GameplayStatics.h"
+#include "Sound/SoundCue.h"
 
 ARocketquakeRiffleWeapon::ARocketquakeRiffleWeapon()
 {
@@ -36,6 +39,16 @@ void ARocketquakeRiffleWeapon::BeginPlay()
     Super::BeginPlay();
 }
 
+void ARocketquakeRiffleWeapon::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+    if (HasAuthority())
+    {
+        Multicast_StopShooting();
+    }
+    
+    Super::EndPlay(EndPlayReason);
+}
+
 void ARocketquakeRiffleWeapon::InitMuzzleFX_Implementation()
 {
     if (!MuzzleFComponent)
@@ -43,20 +56,50 @@ void ARocketquakeRiffleWeapon::InitMuzzleFX_Implementation()
         MuzzleFComponent = SpawnMuzzleFlash();
     }
 
+    if (!FireAudioComponent)
+    {
+        FireAudioComponent = UGameplayStatics::SpawnSoundAttached(FireSound, WeaponMesh, "MuzzleFlashSocket");
+    }
+
     SetMuzzleFXVisibility(true);
+}
+
+void ARocketquakeRiffleWeapon::Multicast_StopShooting_Implementation()
+{
+    if (!IsValidLowLevelFast())
+    {
+        return;
+    }
+    
+    StopShoot();
 }
 
 void ARocketquakeRiffleWeapon::SetMuzzleFXVisibility_Implementation(bool bVisible)
 {
+    if (!IsValidLowLevelFast())
+    {
+        return;
+    }
+    
     if (MuzzleFComponent)
     {
         MuzzleFComponent->SetPaused(!bVisible);
         MuzzleFComponent->SetVisibility(bVisible, true);
     }
+
+    if (FireAudioComponent)
+    {
+        bVisible ? FireAudioComponent->Play() : FireAudioComponent->Stop();
+    }
 }
 
 void ARocketquakeRiffleWeapon::Multicast_SpawnTraceFx_Implementation(FVector TraceEnd)
 {
+    if (!IsValidLowLevelFast())
+    {
+        return;
+    }
+    
     const auto TraceFxComponent = UNiagaraFunctionLibrary::SpawnSystemAtLocation(
         GetWorld(),
         TraceFX,

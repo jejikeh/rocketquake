@@ -6,6 +6,7 @@
 #include "Components/ActorComponent.h"
 #include "WeaponFXComponent.generated.h"
 
+class USoundCue;
 class UNiagaraSystem;
 class UPhysicalMaterial;
 
@@ -39,6 +40,9 @@ public:
 
     UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "WeaponFX")
     FDecalData DecalData;
+
+    UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "WeaponFX")
+    USoundCue* ImpactSound;
 };
 
 UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))

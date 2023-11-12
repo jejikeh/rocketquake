@@ -13,8 +13,10 @@
 #include "Components/SphereComponent.h"
 #include "Components/WeaponComponent.h"
 #include "GameFramework/SpringArmComponent.h"
+#include "Kismet/GameplayStatics.h"
 #include "Net/UnrealNetwork.h"
 #include "Player/RocketquakePlayerController.h"
+#include "Sound/SoundCue.h"
 
 ARocketQuakeCharacter::ARocketQuakeCharacter(const FObjectInitializer &ObjectInitializer)
     : Super(ObjectInitializer.SetDefaultSubobjectClass<URocketquakeMovementComponent>(CharacterMovementComponentName))
@@ -199,7 +201,7 @@ void ARocketQuakeCharacter::OnRep_ToggleSprint()
 void ARocketQuakeCharacter::Multicast_OnDeath_Implementation()
 {
     // PlayAnimMontage(DeathAnimMontage);
-
+    
     GetCapsuleComponent()->SetCollisionResponseToChannels(ECR_Ignore);
     WeaponComponent->StopShoot();
 
@@ -217,7 +219,6 @@ void ARocketQuakeCharacter::Multicast_OnDeath_Implementation()
 
     GetMesh()->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
     GetMesh()->SetSimulatePhysics(true);
-
 }
 
 void ARocketQuakeCharacter::Server_OnDeath_Implementation()

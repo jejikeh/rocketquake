@@ -6,6 +6,7 @@
 #include "GameFramework/Actor.h"
 #include "RocketquakeWeapon.generated.h"
 
+class USoundCue;
 class UNiagaraComponent;
 class UNiagaraSystem;
 DECLARE_MULTICAST_DELEGATE(FOnClipEmptySignature);
@@ -101,6 +102,9 @@ protected:
 
     UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Weapon")
     FWeaponUIData WeaponUIData;
+
+    UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Audio")
+    USoundCue* FireSound;
 
     void DecreaseAmmo();
 
