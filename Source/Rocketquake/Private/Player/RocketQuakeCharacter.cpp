@@ -49,8 +49,6 @@ void ARocketQuakeCharacter::BeginPlay()
     BaseWalkSpeed = GetCharacterMovement()->MaxWalkSpeed;
 
     HealthComponent->OnDeath.AddDynamic(this, &ARocketQuakeCharacter::Multicast_OnDeath);
-    HealthComponent->OnHealthChanged.AddDynamic(this, &ARocketQuakeCharacter::Client_OnHealthChanged);
-    Client_OnHealthChanged();
 
     CameraCollisionSphereComponent->OnComponentBeginOverlap.AddDynamic(this, &ARocketQuakeCharacter::OnCameraCollisionBeginOverlap);
     CameraCollisionSphereComponent->OnComponentEndOverlap.AddDynamic(this, &ARocketQuakeCharacter::OnCameraCollisionEndOverlap);
@@ -81,6 +79,7 @@ void ARocketQuakeCharacter::SetupPlayerInputComponent(UInputComponent *PlayerInp
 
     if (const auto EnhancedInputComponent = Cast<UEnhancedInputComponent>(PlayerInputComponent))
     {
+        EnhancedInputComponent->BindAction(MoveForwardAction, ETriggerEvent::Started, this, &ARocketQuakeCharacter::MoveForwardStarted);
         EnhancedInputComponent->BindAction(MoveForwardAction, ETriggerEvent::Triggered, this, &ARocketQuakeCharacter::MoveForwardCharacter);
         EnhancedInputComponent->BindAction(MoveForwardAction, ETriggerEvent::Completed, this,
             &ARocketQuakeCharacter::ResetMoveForwardCharacter);
@@ -105,7 +104,7 @@ void ARocketQuakeCharacter::SetupPlayerInputComponent(UInputComponent *PlayerInp
 
 bool ARocketQuakeCharacter::IsSprinting() const
 {
-    return bIsSprinting && bIsMovingForward && !GetVelocity().IsZero();
+    return bIsSprinting && bIsMovingForward;
 }
 
 float ARocketQuakeCharacter::GetMovementDirection() const
@@ -145,26 +144,22 @@ void ARocketQuakeCharacter::OnCameraCollisionEndOverlap(UPrimitiveComponent *Ove
     CheckCameraOverlap();
 }
 
+void ARocketQuakeCharacter::MoveForwardStarted(const FInputActionValue &InputActionValue)
+{
+    const auto MovementVector = InputActionValue.Get<FVector2D>();
+    UE_LOG(LogTemp, Warning, TEXT("MovementVector: %s"), *FString::SanitizeFloat(MovementVector.X));
+    Server_SetMovingForward(MovementVector.X < 0.0f);
+}
+
 void ARocketQuakeCharacter::MoveForwardCharacter(const FInputActionValue &Value)
 {
     const auto MovementVector = Value.Get<FVector2D>();
-    Server_SetMovingForward(MovementVector.X < 0.0f);
     AddMovementInput(GetActorForwardVector(), -MovementVector.X);
 }
 
 void ARocketQuakeCharacter::ResetMoveForwardCharacter(const FInputActionValue &Value)
 {
-    Multicast_ResetMoveForwardCharacter();
-}
-
-void ARocketQuakeCharacter::Multicast_ResetMoveForwardCharacter_Implementation()
-{
-    if (IsLocallyControlled())
-    {
-        Server_SetMovingForward(false);
-    }
-
-    Server_SetMovingForward_Implementation(false);
+    Server_SetMovingForward(false);
 }
 
 void ARocketQuakeCharacter::MoveRightCharacter(const FInputActionValue &Value)
@@ -183,7 +178,7 @@ void ARocketQuakeCharacter::LookCharacter(const FInputActionValue &Value)
 void ARocketQuakeCharacter::Server_SetMovingForward_Implementation(bool IsMovingForward)
 {
     bIsMovingForward = IsMovingForward;
-    Multicast_ToggleSprint();
+    OnRep_ToggleSprint();
 }
 
 void ARocketQuakeCharacter::OnRep_ToggleSprint()
@@ -204,21 +199,20 @@ void ARocketQuakeCharacter::Multicast_OnDeath_Implementation()
     
     GetCapsuleComponent()->SetCollisionResponseToChannels(ECR_Ignore);
     WeaponComponent->StopShoot();
-
-    Server_OnDeath();
-
+    
     GetCharacterMovement()->DisableMovement();
+    GetMesh()->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+    GetMesh()->SetSimulatePhysics(true);
 
-    // SetLifeSpan(5.0f);
-    //
+    if (IsLocallyControlled())
+    {
+        Server_OnDeath();
+    }
+    
     // if (Controller)
     // {
     //     Controller->ChangeState(NAME_Spectating);
     // }
-    //
-
-    GetMesh()->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
-    GetMesh()->SetSimulatePhysics(true);
 }
 
 void ARocketQuakeCharacter::Server_OnDeath_Implementation()
@@ -230,22 +224,9 @@ void ARocketQuakeCharacter::Server_OnDeath_Implementation()
             RocketQuakeController->StartSpectating();
         }
     }
-}
 
-void ARocketQuakeCharacter::Client_OnHealthChanged_Implementation()
-{
-}
-
-void ARocketQuakeCharacter::Multicast_ToggleSprint_Implementation()
-{
-    if (IsSprinting())
-    {
-        GetCharacterMovement()->MaxWalkSpeed = BaseWalkSpeed * SprintModifier;
-    }
-    else
-    {
-        GetCharacterMovement()->MaxWalkSpeed = BaseWalkSpeed;
-    }
+    SetLifeSpan(5.0f);
+    WeaponComponent->GetCurrentWeapon()->SetLifeSpan(5.0f);
 }
 
 void ARocketQuakeCharacter::Multicast_SpawnNiagaraSpawnSystemOnSpawn_Implementation()

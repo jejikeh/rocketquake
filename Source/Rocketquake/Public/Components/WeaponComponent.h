@@ -55,6 +55,11 @@ public:
 
     bool TryToAddAmmo(TSubclassOf<ARocketquakeWeapon> Class, int32 AmmoCount);
 
+    ARocketquakeWeapon* GetCurrentWeapon() const
+    {
+        return CurrentWeapon;
+    }
+
 protected:
     virtual void BeginPlay() override;
 

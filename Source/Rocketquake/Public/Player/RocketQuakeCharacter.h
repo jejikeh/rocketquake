@@ -23,6 +23,8 @@ public:
     ARocketQuakeCharacter(const FObjectInitializer &ObjectInitializer);
     
     virtual void Tick(float DeltaTime) override;
+
+    void MoveForwardStarted(const FInputActionValue & InputActionValue);
     
     virtual void SetupPlayerInputComponent(UInputComponent *PlayerInputComponent) override;
 
@@ -69,7 +71,7 @@ private:
     UPROPERTY(ReplicatedUsing = OnRep_ToggleSprint)
     bool bIsSprinting;
 
-    UPROPERTY(Replicated)
+    UPROPERTY(ReplicatedUsing = OnRep_ToggleSprint)
     bool bIsMovingForward;
     
     UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Input", meta=(AllowPrivateAccess = "true"))
@@ -119,10 +121,6 @@ private:
     void MoveForwardCharacter(const FInputActionValue& Value);
 
     void ResetMoveForwardCharacter(const FInputActionValue& Value);
-
-    UFUNCTION(NetMulticast, Reliable)
-    void Multicast_ResetMoveForwardCharacter();
-    void Multicast_ResetMoveForwardCharacter_Implementation();
     
     void MoveRightCharacter(const FInputActionValue& Value);
     
@@ -146,14 +144,6 @@ private:
     UFUNCTION(Server, Reliable)
     void Server_OnDeath();
     void Server_OnDeath_Implementation();
-
-    UFUNCTION(Client, Reliable)
-    void Client_OnHealthChanged();
-    void Client_OnHealthChanged_Implementation();
-    
-    UFUNCTION(NetMulticast, Reliable)
-    void Multicast_ToggleSprint();
-    void Multicast_ToggleSprint_Implementation();
 
     UFUNCTION(NetMulticast, Unreliable)
     void Multicast_SpawnNiagaraSpawnSystemOnSpawn();

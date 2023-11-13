@@ -29,7 +29,7 @@ void UWeaponComponent::StartShoot_Implementation()
 
 void UWeaponComponent::StopShoot_Implementation()
 {
-    if (!CurrentWeapon)
+    if (!CurrentWeapon || !CurrentWeapon->IsValidLowLevelFast())
     {
         return;
     }

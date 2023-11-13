@@ -43,8 +43,10 @@ void ARocketquakeRiffleWeapon::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
     if (HasAuthority())
     {
-        Multicast_StopShooting();
+        StopShoot();
     }
+
+    SetMuzzleFXVisibility_Implementation(false);
     
     Super::EndPlay(EndPlayReason);
 }
@@ -61,17 +63,8 @@ void ARocketquakeRiffleWeapon::InitMuzzleFX_Implementation()
         FireAudioComponent = UGameplayStatics::SpawnSoundAttached(FireSound, WeaponMesh, "MuzzleFlashSocket");
     }
 
-    SetMuzzleFXVisibility(true);
-}
-
-void ARocketquakeRiffleWeapon::Multicast_StopShooting_Implementation()
-{
-    if (!IsValidLowLevelFast())
-    {
-        return;
-    }
-    
-    StopShoot();
+    // No need call here another RPC?
+    SetMuzzleFXVisibility_Implementation(true);
 }
 
 void ARocketquakeRiffleWeapon::SetMuzzleFXVisibility_Implementation(bool bVisible)
@@ -89,6 +82,7 @@ void ARocketquakeRiffleWeapon::SetMuzzleFXVisibility_Implementation(bool bVisibl
 
     if (FireAudioComponent)
     {
+        UE_LOG(LogTemp, Warning, TEXT("bVisible: %d"), bVisible);
         bVisible ? FireAudioComponent->Play() : FireAudioComponent->Stop();
     }
 }
@@ -121,7 +115,11 @@ void ARocketquakeRiffleWeapon::StartShoot()
 void ARocketquakeRiffleWeapon::StopShoot()
 {
     GetWorldTimerManager().ClearTimer(ShotTimerHandle);
-    SetMuzzleFXVisibility(false);
+
+    if (IsValidLowLevelFast())
+    {
+        SetMuzzleFXVisibility(false);
+    }
 }
 
 void ARocketquakeRiffleWeapon::MakeShot()

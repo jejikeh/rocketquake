@@ -71,19 +71,15 @@ private:
     UPROPERTY()
     UAudioComponent* FireAudioComponent;
 
-    UFUNCTION(NetMulticast, Reliable)
+    UFUNCTION(NetMulticast, Unreliable)
     void InitMuzzleFX();
     void InitMuzzleFX_Implementation();
 
-    UFUNCTION(NetMulticast, Reliable)
-    void Multicast_StopShooting();
-    void Multicast_StopShooting_Implementation();
-
-    UFUNCTION(NetMulticast, Reliable)
+    UFUNCTION(NetMulticast, Unreliable)
     void SetMuzzleFXVisibility(bool bVisible);
     void SetMuzzleFXVisibility_Implementation(bool bVisible);
 
-    UFUNCTION(NetMulticast, Reliable)
+    UFUNCTION(NetMulticast, Unreliable)
     void Multicast_SpawnTraceFx(FVector TraceEnd);
     void Multicast_SpawnTraceFx_Implementation(FVector TraceEnd);
 };
