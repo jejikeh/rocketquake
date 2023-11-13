@@ -50,4 +50,8 @@ private:
     FTimerHandle WaitPlayerStateTimer;
 
     void WaitPlayerState();
+
+    UFUNCTION(Client, Reliable)
+    void Client_SetInputMode();
+    void Client_SetInputMode_Implementation();
 };

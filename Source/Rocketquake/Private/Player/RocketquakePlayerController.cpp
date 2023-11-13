@@ -28,12 +28,13 @@ void ARocketquakePlayerController::StartPlaying()
 {
     if (!HasAuthority())
     {
+        SetInputMode(FInputModeGameOnly());
         return;
     }
 
     ChangeState(NAME_Playing);
     ClientGotoState(NAME_Playing);
-    SetInputMode(FInputModeGameOnly{});
+    Client_SetInputMode();
 }
 
 void ARocketquakePlayerController::Client_StartSpectating_Implementation()
@@ -111,4 +112,9 @@ void ARocketquakePlayerController::WaitPlayerState()
         RocketquakePlayerState->OnPlayerGameStateChanged.AddDynamic(this, &ARocketquakePlayerController::OnPlayerStateChanged);
         GetWorldTimerManager().ClearTimer(WaitPlayerStateTimer);
     }
+}
+
+void ARocketquakePlayerController::Client_SetInputMode_Implementation()
+{
+    SetInputMode(FInputModeGameOnly());
 }
