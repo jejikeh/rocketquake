@@ -33,6 +33,7 @@ void ARocketquakePlayerController::StartPlaying()
 
     ChangeState(NAME_Playing);
     ClientGotoState(NAME_Playing);
+    SetInputMode(FInputModeGameOnly{});
 }
 
 void ARocketquakePlayerController::Client_StartSpectating_Implementation()
