@@ -38,7 +38,7 @@ private:
 
     UFUNCTION()
     void OnHostServerClicked();
-
+    
     UFUNCTION()
     void OnExploreServersClicked();
 };

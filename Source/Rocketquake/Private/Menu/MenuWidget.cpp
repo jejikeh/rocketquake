@@ -3,6 +3,7 @@
 
 #include "Menu/MenuWidget.h"
 
+#include "RocketquakeAdvancedGameInstance.h"
 #include "RocketquakeGameInstance.h"
 #include "Components/Button.h"
 #include "Kismet/GameplayStatics.h"
@@ -25,7 +26,7 @@ void UMenuWidget::NativeOnInitialized()
     {
         HostServerButton->OnClicked.AddDynamic(this, &UMenuWidget::OnHostServerClicked);
     }
-
+    
     if (ExploreServersButton)
     {
         ExploreServersButton->OnClicked.AddDynamic(this, &UMenuWidget::OnExploreServersClicked);
@@ -34,7 +35,7 @@ void UMenuWidget::NativeOnInitialized()
 
 void UMenuWidget::OnStartButtonClicked()
 {
-    const auto GameInstance = GetWorld()->GetGameInstance<URocketquakeGameInstance>();
+    const auto GameInstance = GetWorld()->GetGameInstance<URocketquakeAdvancedGameInstance>();
     if (!GameInstance)
     {
         return;
@@ -57,7 +58,7 @@ void UMenuWidget::OnExitButtonClicked()
 
 void UMenuWidget::OnHostServerClicked()
 {
-    const auto GameInstance = GetWorld()->GetGameInstance<URocketquakeGameInstance>();
+    const auto GameInstance = GetWorld()->GetGameInstance<URocketquakeAdvancedGameInstance>();
     if (!GameInstance)
     {
         return;
@@ -68,11 +69,11 @@ void UMenuWidget::OnHostServerClicked()
 
 void UMenuWidget::OnExploreServersClicked()
 {
-    const auto GameInstance = GetWorld()->GetGameInstance<URocketquakeGameInstance>();
+    const auto GameInstance = GetWorld()->GetGameInstance<URocketquakeAdvancedGameInstance>();
     if (!GameInstance)
     {
         return;
     }
 
-    GameInstance->JoinMatchSession();
+    // GameInstance->JoinMatchSession();
 }

@@ -6,6 +6,8 @@
 #include "GameFramework/Actor.h"
 #include "DamageSphereActor.generated.h"
 
+class UProjectileMovementComponent;
+class UMovementComponent;
 class UDamageType;
 
 UCLASS()
@@ -33,6 +35,9 @@ public:
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite)
     TSubclassOf<UDamageType> DamageType;
+
+    UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
+    UProjectileMovementComponent* ProjectileMovementComponent;
 
 protected:
 	// Called when the game starts or when spawned

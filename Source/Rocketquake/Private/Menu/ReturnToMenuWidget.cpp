@@ -3,6 +3,7 @@
 
 #include "Menu/ReturnToMenuWidget.h"
 
+#include "RocketquakeAdvancedGameInstance.h"
 #include "RocketquakeGameInstance.h"
 #include "Components/Button.h"
 #include "Kismet/GameplayStatics.h"
@@ -21,7 +22,7 @@ void UReturnToMenuWidget::NativeOnInitialized()
 
 void UReturnToMenuWidget::OnReturnToMenuButtonClicked()
 {
-    const auto GameInstance = GetWorld()->GetGameInstance<URocketquakeGameInstance>();
+    const auto GameInstance = GetWorld()->GetGameInstance<URocketquakeAdvancedGameInstance>();
     if (!GameInstance)
     {
         return;
