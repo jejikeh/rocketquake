@@ -111,6 +111,10 @@ void ARocketquakeGameModeBase::ResetPlayers()
     for (auto It = GetWorld()->GetControllerIterator(); It; ++It)
     {
         ResetOnePlayer(It->Get());
+        if (const auto RespawnComponent = It->Get()->GetComponentByClass<URespawnComponent>())
+        {
+            RespawnComponent->Client_ResetRespawnTimer();
+        }
     }
 }
 

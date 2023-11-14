@@ -63,7 +63,6 @@ void ARocketquakeRiffleWeapon::InitMuzzleFX_Implementation()
         FireAudioComponent = UGameplayStatics::SpawnSoundAttached(FireSound, WeaponMesh, "MuzzleFlashSocket");
     }
 
-    // No need call here another RPC?
     SetMuzzleFXVisibility_Implementation(true);
 }
 
@@ -184,7 +183,4 @@ void ARocketquakeRiffleWeapon::MakeDamage(const FHitResult &HitResult)
 void ARocketquakeRiffleWeapon::Multicast_DebugDraw_Implementation(FHitResult HitResult)
 {
     WeaponFXComponent->PlayImpactFx(HitResult);
-    
-    // DrawDebugLine(GetWorld(), WeaponMesh->GetSocketLocation("MuzzleFlashSocket"), HitResult.Location, FColor::Green, false, 3.0f);
-    // DrawDebugSphere(GetWorld(), HitResult.ImpactPoint, 10.0f, 12, FColor::Red, false, 3.0f);
 }

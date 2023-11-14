@@ -19,6 +19,10 @@ public:
     void Client_Respawn(int RespawnTime);
     void Client_Respawn_Implementation(int RespawnTime);
 
+    UFUNCTION(Client, Unreliable)
+    void Client_ResetRespawnTimer();
+    void Client_ResetRespawnTimer_Implementation();
+
     int32 GetRespawnCountDown() const
     {
         return RespawnCountDown;
