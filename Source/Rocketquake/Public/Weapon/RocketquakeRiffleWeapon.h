@@ -49,14 +49,16 @@ protected:
     
     UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Weapon")
     float BulletSpread = 1.0f;
+    
+    UFUNCTION(NetMulticast, Unreliable)
+    void Multicast_StartShoot();
+    void Multicast_StartShoot_Implementation();
 
     UFUNCTION(NetMulticast, Reliable)
-    void Multicast_DebugDraw(FHitResult HitResult);
-    void Multicast_DebugDraw_Implementation(FHitResult HitResult);
-
-    UFUNCTION(Client, Reliable)
-    void Client_PlayCameraShake();
-    void Client_PlayCameraShake_Implementation();
+    void Multicast_StopShoot();
+    void Multicast_StopShoot_Implementation();
+    
+    void PlayCameraShake();
 
     virtual void BeginPlay() override;
 
@@ -79,7 +81,5 @@ private:
     void SetMuzzleFXVisibility(bool bVisible);
     void SetMuzzleFXVisibility_Implementation(bool bVisible);
 
-    UFUNCTION(NetMulticast, Unreliable)
-    void Multicast_SpawnTraceFx(FVector TraceEnd);
-    void Multicast_SpawnTraceFx_Implementation(FVector TraceEnd);
+    void SpawnTraceFx(const FVector &TraceEnd) const;
 };

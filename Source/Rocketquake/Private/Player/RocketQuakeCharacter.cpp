@@ -126,6 +126,28 @@ void ARocketQuakeCharacter::SetPlayerColor_Implementation(FLinearColor NewColor)
     MaterialInstance->SetVectorParameterValue(MaterialColorName, NewColor);
 }
 
+FRotator ARocketQuakeCharacter::GetLastReplicatedViewRotation()
+{
+    auto BaseAimRotation = GetBaseAimRotation();
+    if (!IsLocallyControlled() && BaseAimRotation.Pitch > 90 && BaseAimRotation.Pitch < 360) {
+        // NOTE: Hack to fix animations on BS movement pitch
+        BaseAimRotation.Pitch -= 360;
+    }
+    
+    if (!HasAuthority() && !IsLocallyControlled())
+    {
+        // NOTE: Hack to fix the camera rotation on clients
+        BaseAimRotation += BaseAimRotationShift;
+    }
+
+    return BaseAimRotation;
+}
+
+float ARocketQuakeCharacter::GetCameraPitch() const
+{
+    return CameraComponent->GetRelativeRotation().Pitch;
+}
+
 void ARocketQuakeCharacter::OnCameraCollisionBeginOverlap(UPrimitiveComponent *OverlappedComponent, AActor *OtherActor,
     UPrimitiveComponent *OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult &SweepResult)
 {
@@ -147,7 +169,6 @@ void ARocketQuakeCharacter::OnCameraCollisionEndOverlap(UPrimitiveComponent *Ove
 void ARocketQuakeCharacter::MoveForwardStarted(const FInputActionValue &InputActionValue)
 {
     const auto MovementVector = InputActionValue.Get<FVector2D>();
-    UE_LOG(LogTemp, Warning, TEXT("MovementVector: %s"), *FString::SanitizeFloat(MovementVector.X));
     Server_SetMovingForward(MovementVector.X < 0.0f);
 }
 
@@ -263,6 +284,7 @@ void ARocketQuakeCharacter::Server_SetSprint_Implementation(bool Sprinting)
 void ARocketQuakeCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty> &OutLifetimeProps) const
 {
     Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+    
     DOREPLIFETIME(ARocketQuakeCharacter, bIsSprinting);
     DOREPLIFETIME(ARocketQuakeCharacter, bIsMovingForward);
     DOREPLIFETIME(ARocketQuakeCharacter, bIsFirstTimeTick);

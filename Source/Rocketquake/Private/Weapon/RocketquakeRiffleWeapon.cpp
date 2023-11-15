@@ -17,7 +17,7 @@ ARocketquakeRiffleWeapon::ARocketquakeRiffleWeapon()
     WeaponFXComponent = CreateDefaultSubobject<UWeaponFXComponent>("WeaponFXComponent");
 }
 
-void ARocketquakeRiffleWeapon::Client_PlayCameraShake_Implementation()
+void ARocketquakeRiffleWeapon::PlayCameraShake()
 {
     const auto Player = Cast<ACharacter>(GetOwner());
     if (!Player)
@@ -86,7 +86,7 @@ void ARocketquakeRiffleWeapon::SetMuzzleFXVisibility_Implementation(bool bVisibl
     }
 }
 
-void ARocketquakeRiffleWeapon::Multicast_SpawnTraceFx_Implementation(FVector TraceEnd)
+void ARocketquakeRiffleWeapon::SpawnTraceFx(const FVector &TraceEnd) const
 {
     if (!IsValidLowLevelFast())
     {
@@ -106,18 +106,17 @@ void ARocketquakeRiffleWeapon::Multicast_SpawnTraceFx_Implementation(FVector Tra
 
 void ARocketquakeRiffleWeapon::StartShoot()
 {
-    GetWorldTimerManager().SetTimer(ShotTimerHandle, this, &ARocketquakeRiffleWeapon::MakeShot, TimeBetweenShots, true);
-    MakeShot();
-    InitMuzzleFX();
+    if (HasAuthority())
+    {
+        Multicast_StartShoot();
+    }
 }
 
 void ARocketquakeRiffleWeapon::StopShoot()
 {
-    GetWorldTimerManager().ClearTimer(ShotTimerHandle);
-
-    if (IsValidLowLevelFast())
+    if (HasAuthority())
     {
-        SetMuzzleFXVisibility(false);
+        Multicast_StopShoot();
     }
 }
 
@@ -125,12 +124,14 @@ void ARocketquakeRiffleWeapon::MakeShot()
 {
     if (IsAmmoEmpty())
     {
+        UE_LOG(LogTemp, Error, TEXT("IsAmmoEmpty"));
         return;
     }
     
     FVector TraceStart, TraceEnd;
     if (!GetTraceData(TraceStart, TraceEnd))
     {
+        UE_LOG(LogTemp, Error, TEXT("GetTraceData"));
         return;
     }
 
@@ -139,16 +140,32 @@ void ARocketquakeRiffleWeapon::MakeShot()
 
     FVector TraceFxEnd = TraceEnd;
 
-    if (HitResult.bBlockingHit)
+    if (HitResult.bBlockingHit || HasAuthority())
     {
         TraceFxEnd = HitResult.ImpactPoint;
         MakeDamage(HitResult);
-        Multicast_DebugDraw(HitResult);
     }
 
-    DecreaseAmmo();
-    Client_PlayCameraShake();
-    Multicast_SpawnTraceFx(TraceFxEnd);
+    WeaponFXComponent->PlayImpactFx(HitResult);
+
+    // NOTE: Maybe leave that in the client?
+    if (HasAuthority())
+    {
+        DecreaseAmmo();
+    }
+
+    const auto Player = Cast<ACharacter>(GetOwner());
+    if (!Player)
+    {
+        return;
+    }
+
+    if (Player->IsLocallyControlled())
+    {
+        PlayCameraShake();
+    }
+    
+    SpawnTraceFx(TraceFxEnd);
 }
 
 bool ARocketquakeRiffleWeapon::GetTraceData(FVector &TraceStart, FVector &TraceEnd) const
@@ -180,7 +197,19 @@ void ARocketquakeRiffleWeapon::MakeDamage(const FHitResult &HitResult)
     DamageActor->TakeDamage(Damage, FDamageEvent(), GetController(), this);
 }
 
-void ARocketquakeRiffleWeapon::Multicast_DebugDraw_Implementation(FHitResult HitResult)
+void ARocketquakeRiffleWeapon::Multicast_StartShoot_Implementation()
 {
-    WeaponFXComponent->PlayImpactFx(HitResult);
+    GetWorldTimerManager().SetTimer(ShotTimerHandle, this, &ARocketquakeRiffleWeapon::MakeShot, TimeBetweenShots, true);
+    MakeShot();
+    InitMuzzleFX_Implementation();
+}
+
+void ARocketquakeRiffleWeapon::Multicast_StopShoot_Implementation()
+{
+    GetWorldTimerManager().ClearTimer(ShotTimerHandle);
+
+    if (IsValidLowLevelFast())
+    {
+        SetMuzzleFXVisibility(false);
+    }
 }

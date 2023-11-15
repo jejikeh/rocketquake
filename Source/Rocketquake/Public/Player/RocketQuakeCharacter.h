@@ -38,6 +38,11 @@ public:
     void SetPlayerColor(FLinearColor NewColor);
     void SetPlayerColor_Implementation(FLinearColor NewColor);
 
+    UFUNCTION(BlueprintCallable)
+    FRotator GetLastReplicatedViewRotation();
+
+    float GetCameraPitch() const;
+
 protected:
     UFUNCTION()
     void OnCameraCollisionBeginOverlap(UPrimitiveComponent * OverlappedComponent, AActor * OtherActor, UPrimitiveComponent * OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult);
@@ -66,6 +71,9 @@ protected:
 
     UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Camera")
     USphereComponent* CameraCollisionSphereComponent;
+
+    UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Movement")
+    FRotator BaseAimRotationShift;
 
 private:
     UPROPERTY(ReplicatedUsing = OnRep_ToggleSprint)

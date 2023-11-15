@@ -6,6 +6,7 @@
 #include "NiagaraFunctionLibrary.h"
 #include "NiagaraSystem.h"
 #include "GameFramework/Character.h"
+#include "Player/RocketQuakeCharacter.h"
 
 // Sets default values
 ARocketquakeWeapon::ARocketquakeWeapon()
@@ -82,7 +83,16 @@ bool ARocketquakeWeapon::GetPlayerViewPoint(FVector &ViewLocation, FRotator &Vie
     const auto Controller = GetController();
     if (!Controller)
     {
-        return false;
+        const auto Player = Cast<ARocketQuakeCharacter>(GetOwner());
+        if (!Player)
+        {
+            return false;
+        }
+        
+        ViewLocation = GetActorLocation();
+        ViewRotation = Player->GetLastReplicatedViewRotation();
+        
+        return true;
     }
 
     Controller->GetPlayerViewPoint(ViewLocation, ViewRotation);

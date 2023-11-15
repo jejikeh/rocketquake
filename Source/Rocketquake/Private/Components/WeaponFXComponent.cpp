@@ -4,6 +4,7 @@
 #include "Components/WeaponFXComponent.h"
 #include "NiagaraFunctionLibrary.h"
 #include "Components/DecalComponent.h"
+#include "GameFramework/Character.h"
 #include "Kismet/GameplayStatics.h"
 #include "PhysicalMaterials/PhysicalMaterial.h"
 #include "Sound/SoundCue.h"
