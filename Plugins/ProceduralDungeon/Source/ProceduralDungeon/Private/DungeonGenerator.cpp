@@ -356,7 +356,7 @@ void ADungeonGenerator::UpdateRoomVisibility()
 	if (!Dungeon::OcclusionCulling())
 		return;
 
-	APawn* Player = UGameplayStatics::GetPlayerController(GetWorld(), 0)->GetPawnOrSpectator();
+	APawn* Player = Cast<APawn>(UGameplayStatics::GetPlayerController(GetWorld(), 0));
 	if (!IsValid(Player))
 		return;
 
