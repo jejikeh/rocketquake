@@ -2,7 +2,6 @@
 
 
 #include "Weapon/RocketquakeRiffleWeapon.h"
-
 #include "NiagaraFunctionLibrary.h"
 #include "Components/WeaponFXComponent.h"
 #include "Engine/DamageEvents.h"

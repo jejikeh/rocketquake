@@ -13,10 +13,8 @@
 #include "Components/SphereComponent.h"
 #include "Components/WeaponComponent.h"
 #include "GameFramework/SpringArmComponent.h"
-#include "Kismet/GameplayStatics.h"
 #include "Net/UnrealNetwork.h"
 #include "Player/RocketquakePlayerController.h"
-#include "Sound/SoundCue.h"
 
 ARocketQuakeCharacter::ARocketQuakeCharacter(const FObjectInitializer &ObjectInitializer)
     : Super(ObjectInitializer.SetDefaultSubobjectClass<URocketquakeMovementComponent>(CharacterMovementComponentName))
@@ -27,8 +25,18 @@ ARocketQuakeCharacter::ARocketQuakeCharacter(const FObjectInitializer &ObjectIni
     SpringArmComponent->SetupAttachment(GetMesh(), "CameraSocket");
     SpringArmComponent->bUsePawnControlRotation = true;
 
-    CameraComponent = CreateDefaultSubobject<UCameraComponent>("CameraComponent");
+    CameraComponent = CreateDefaultSubobject<UCameraComponent>("ThirdPersonCameraComponent");
     CameraComponent->SetupAttachment(SpringArmComponent, USpringArmComponent::SocketName);
+    CameraComponent->bAutoActivate = false;
+
+    FirstPersonArmComponent = CreateDefaultSubobject<USpringArmComponent>("FirstPersonArmComponent");
+    FirstPersonArmComponent->SetupAttachment(GetMesh(), "CameraSocket");
+    FirstPersonArmComponent->bUsePawnControlRotation = true;
+    
+    FirstPersonCameraComponent = CreateDefaultSubobject<UCameraComponent>("FirstPersonCameraComponent");
+    FirstPersonCameraComponent->SetupAttachment(FirstPersonArmComponent, USpringArmComponent::SocketName);
+    FirstPersonCameraComponent->bUsePawnControlRotation = true;
+    FirstPersonCameraComponent->bAutoActivate = true;
 
     HealthComponent = CreateDefaultSubobject<UHealthComponent>("HealthComponent");
     HealthComponent->SetIsReplicated(true);
@@ -88,7 +96,8 @@ void ARocketQuakeCharacter::SetupPlayerInputComponent(UInputComponent *PlayerInp
 
         EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &ARocketQuakeCharacter::LookCharacter);
 
-        EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Triggered, this, &ARocketQuakeCharacter::Jump);
+        EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Started, this, &ARocketQuakeCharacter::Jump);
+        EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &ARocketQuakeCharacter::StopJumping);
 
         EnhancedInputComponent->BindAction(SprintAction, ETriggerEvent::Started, this, &ARocketQuakeCharacter::HandleStartSprintAction);
         EnhancedInputComponent->BindAction(SprintAction, ETriggerEvent::Completed, this, &ARocketQuakeCharacter::HandleStopSprintAction);
@@ -99,7 +108,14 @@ void ARocketQuakeCharacter::SetupPlayerInputComponent(UInputComponent *PlayerInp
         EnhancedInputComponent->BindAction(SwitchWeaponAction, ETriggerEvent::Started, WeaponComponent, &UWeaponComponent::NextWeapon);
 
         EnhancedInputComponent->BindAction(ReloadAction, ETriggerEvent::Started, WeaponComponent, &UWeaponComponent::Reload);
+
+        EnhancedInputComponent->BindAction(SwitchCameraViewAction, ETriggerEvent::Completed, this, &ARocketQuakeCharacter::SwitchCameraView);
     }
+}
+
+bool ARocketQuakeCharacter::GetIsSprinting() const
+{
+    return IsSprinting();
 }
 
 bool ARocketQuakeCharacter::IsSprinting() const
@@ -187,6 +203,7 @@ void ARocketQuakeCharacter::MoveRightCharacter(const FInputActionValue &Value)
 {
     const auto MovementVector = Value.Get<FVector2D>();
     AddMovementInput(GetActorRightVector(), MovementVector.X);
+    OnCharacterMovementRight(MovementVector.X);
 }
 
 void ARocketQuakeCharacter::LookCharacter(const FInputActionValue &Value)
@@ -229,11 +246,6 @@ void ARocketQuakeCharacter::Multicast_OnDeath_Implementation()
     {
         Server_OnDeath();
     }
-    
-    // if (Controller)
-    // {
-    //     Controller->ChangeState(NAME_Spectating);
-    // }
 }
 
 void ARocketQuakeCharacter::Server_OnDeath_Implementation()
@@ -274,13 +286,27 @@ void ARocketQuakeCharacter::HandleStopSprintAction()
     Server_SetSprint(false);
 }
 
+void ARocketQuakeCharacter::SwitchCameraView()
+{
+    if (FirstPersonCameraComponent->IsActive() == CameraComponent->IsActive())
+    {
+        CameraComponent->SetActive(false);
+        FirstPersonCameraComponent->SetActive(true);
+        bIsThirdPerson = CameraComponent->IsActive();
+        return;
+    }
+
+    FirstPersonCameraComponent->SetActive(!FirstPersonCameraComponent->IsActive());
+    CameraComponent->SetActive(!CameraComponent->IsActive());
+    bIsThirdPerson = CameraComponent->IsActive();
+}
+
 void ARocketQuakeCharacter::Server_SetSprint_Implementation(bool Sprinting)
 {
     bIsSprinting = Sprinting;
     OnRep_ToggleSprint();
 }
 
-// Why it doesn't work?
 void ARocketQuakeCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty> &OutLifetimeProps) const
 {
     Super::GetLifetimeReplicatedProps(OutLifetimeProps);

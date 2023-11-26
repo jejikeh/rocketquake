@@ -5,11 +5,12 @@ using System.Collections.Generic;
 
 public class RocketquakeTarget : TargetRules
 {
-	public RocketquakeTarget( TargetInfo Target) : base(Target)
+	public RocketquakeTarget(TargetInfo Target) : base(Target)
 	{
 		Type = TargetType.Game;
 		DefaultBuildSettings = BuildSettingsVersion.V2;
 		IncludeOrderVersion = EngineIncludeOrderVersion.Unreal5_1;
 		ExtraModuleNames.Add("Rocketquake");
+		ExtraModuleNames.Add("WaveFunctionCollapse");
 	}
 }

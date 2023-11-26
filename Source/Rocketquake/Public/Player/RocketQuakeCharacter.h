@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "InputActionValue.h"
+#include "Character/PBPlayerCharacter.h"
 #include "GameFramework/Character.h"
 #include "RocketQuakeCharacter.generated.h"
 
@@ -15,7 +16,7 @@ class ARocketquakeWeapon;
 struct FInputActionValue;
 
 UCLASS()
-class ROCKETQUAKE_API ARocketQuakeCharacter : public ACharacter
+class ROCKETQUAKE_API ARocketQuakeCharacter : public APBPlayerCharacter
 {
     GENERATED_BODY()
 
@@ -29,7 +30,9 @@ public:
     virtual void SetupPlayerInputComponent(UInputComponent *PlayerInputComponent) override;
 
     UFUNCTION(BlueprintCallable, Category = "Movement")
-    bool IsSprinting() const;
+    bool GetIsSprinting() const;
+
+    virtual bool IsSprinting() const override;
 
     UFUNCTION(BlueprintCallable, Category = "Movement")
     float GetMovementDirection() const;
@@ -55,13 +58,22 @@ protected:
     virtual void BeginPlay() override;
 
     UFUNCTION(BlueprintImplementableEvent)
+    void OnCharacterMovementRight(float Value);
+
+    UFUNCTION(BlueprintImplementableEvent)
     void SetNiagaraSkeletalMesh(UNiagaraComponent *NiagaraComponent);
 
-    UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Camera")
+    UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Camera")
     class UCameraComponent* CameraComponent;
+
+    UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Camera")
+    class UCameraComponent* FirstPersonCameraComponent;
 
     UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Camera")
     class USpringArmComponent* SpringArmComponent;
+    
+    UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Camera")
+    class USpringArmComponent* FirstPersonArmComponent;
 
     UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Movement")
     class UHealthComponent* HealthComponent;
@@ -108,6 +120,9 @@ private:
 
     UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Input", meta = (AllowPrivateAccess = "true"))
     UInputAction* ReloadAction;
+
+    UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Input", meta = (AllowPrivateAccess = "true"))
+    UInputAction* SwitchCameraViewAction;
     
     UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Movement", meta = (ClampMin = "1.0", ClampMax = "10.0", AllowPrivateAccess = "true"))
     float SprintModifier = 1.5f;
@@ -160,6 +175,10 @@ private:
     void HandleStartSprintAction();
 
     void HandleStopSprintAction();
+
+    void SwitchCameraView();
+
+    bool bIsThirdPerson = true;
 
     UPROPERTY(Replicated)
     bool bIsFirstTimeTick = true;

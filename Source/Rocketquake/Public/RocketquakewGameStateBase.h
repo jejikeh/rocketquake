@@ -55,8 +55,8 @@ public:
     void Multicast_EndGame_Implementation();
 
 protected:
-    
     virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+
 private:
     UPROPERTY(Replicated)
     int32 CurrentRound = 0;

@@ -1,6 +1,6 @@
 {
 	"FileVersion": 3,
-	"EngineAssociation": "{39250F1E-E24B-E04D-7A60-4AA921ABEFFF}",
+	"EngineAssociation": "5.2",
 	"Category": "",
 	"Description": "",
 	"Modules": [
@@ -13,6 +13,14 @@
 				"UMG",
 				"AdvancedSessions"
 			]
+		},
+		{
+			"Name": "WaveFunctionCollapse",
+			"Type": "Runtime",
+			"LoadingPhase": "Default",
+			"AdditionalDependencies": [
+				"Engine"
+			]
 		}
 	],
 	"Plugins": [
@@ -22,6 +30,10 @@
 			"TargetAllowList": [
 				"Editor"
 			]
+		},
+		{
+			"Name": "ProceduralDungeon",
+			"Enabled": true
 		}
 	]
 }

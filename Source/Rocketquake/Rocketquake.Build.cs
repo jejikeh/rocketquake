@@ -21,7 +21,9 @@ public class Rocketquake : ModuleRules
 			"OnlineSubsystemNull",
 			"OnlineSubsystemUtils",
 			"AdvancedSessions",
-			"AdvancedSteamSessions"
+			"AdvancedSteamSessions",
+			"WaveFunctionCollapse", 
+			"PBCharacterMovement", "PBCharacterMovement"
 		});
 
 		PrivateDependencyModuleNames.AddRange(new string[]

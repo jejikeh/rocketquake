@@ -88,7 +88,7 @@ private:
     int32 DeathNus = 0;
 
     EPlayerGameState CurrentGameState;
-
+    
     UFUNCTION()
     void OnMatchStateChanged(ERocketquakeMatchState NewState);
 };
