@@ -23,7 +23,7 @@ public class Rocketquake : ModuleRules
 			"AdvancedSessions",
 			"AdvancedSteamSessions",
 			"WaveFunctionCollapse", 
-			"PBCharacterMovement", "PBCharacterMovement"
+			"PBCharacterMovement", 
 		});
 
 		PrivateDependencyModuleNames.AddRange(new string[]
