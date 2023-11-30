@@ -139,7 +139,7 @@ void ARocketquakeRiffleWeapon::MakeShot()
 
     FVector TraceFxEnd = TraceEnd;
 
-    if (HitResult.bBlockingHit || HasAuthority())
+    if (HitResult.bBlockingHit && HasAuthority())
     {
         TraceFxEnd = HitResult.ImpactPoint;
         MakeDamage(HitResult);
