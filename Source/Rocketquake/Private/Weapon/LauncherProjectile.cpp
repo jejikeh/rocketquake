@@ -46,6 +46,15 @@ void ALauncherProjectile::HandleHit_Implementation(FHitResult Hit)
     // DrawDebugSphere(GetWorld(), GetActorLocation(), RadialForceComponent->Radius, 12, FColor::Red, false, 5.0f);
     WeaponFXComponent->PlayImpactFx(Hit);
 
+    UGameplayStatics::ApplyRadialDamage(
+        GetWorld(),
+        BaseDamage,
+        Hit.Location,
+        RadialForceComponent->Radius,
+        {},
+        {},
+         this);
+
     const auto Player = Cast<APlayerController>(UGameplayStatics::GetPlayerController(GetWorld(), 0));
     if (!Player)
     {

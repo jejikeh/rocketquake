@@ -34,6 +34,15 @@ public:
     UPROPERTY(VisibleAnywhere, Category = "Weapon")
     UWeaponFXComponent* WeaponFXComponent;
 
+    UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
+    float BaseDamage;
+
+    UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
+    float DamageFallOff;
+
+    UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
+    float OuterRadius;
+
     UFUNCTION(NetMulticast, Reliable)
     void SetShootDirection(const FVector& Direction);
     void SetShootDirection_Implementation(const FVector& Direction);
