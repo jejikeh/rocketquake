@@ -57,6 +57,12 @@ void ARocketquakeGameModeBase::Killed(AController *Killer, AController *Victim)
     }
 }
 
+void ARocketquakeGameModeBase::RestartGame()
+{
+    ResetPlayers();
+    StartRound();
+}
+
 void ARocketquakeGameModeBase::GenericPlayerInitialization(AController *C)
 {
     Super::GenericPlayerInitialization(C);
@@ -98,6 +104,7 @@ void ARocketquakeGameModeBase::GameTimerUpdate()
             CurrentRound++;
             ResetPlayers();
             StartRound();
+            OnMatchChanged.Broadcast();
         }
         else
         {

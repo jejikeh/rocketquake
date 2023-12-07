@@ -7,6 +7,8 @@
 #include "Types/GameMatchStates.h"
 #include "RocketquakeGameModeBase.generated.h"
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnMathChanged);
+
 USTRUCT(BlueprintType)
 struct FGameData
 {
@@ -49,6 +51,12 @@ public:
     FGameData GameData;
 
     void Killed(AController* Killer, AController* Victim);
+
+    UFUNCTION(BlueprintCallable)
+    void RestartGame();
+
+    UPROPERTY(BlueprintAssignable)
+    FOnMathChanged OnMatchChanged;
 
     FGameData GetGameData() const
     {
