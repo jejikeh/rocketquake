@@ -38,6 +38,7 @@ public:
         return Health / MaxHealth;
     };
 
+    UPROPERTY(BlueprintAssignable)
     FOnDeath OnDeath;
 
     FOnHealthChanged OnHealthChanged;

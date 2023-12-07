@@ -190,10 +190,19 @@ void ARocketquakeRiffleWeapon::MakeDamage(const FHitResult &HitResult)
     const auto DamageActor = Cast<ACharacter>(HitResult.GetActor());
     if (!DamageActor)
     {
+        if (HitResult.GetActor())
+        {
+            UGameplayStatics::ApplyDamage(
+                HitResult.GetActor(),
+                FMath::RandRange(0.0f, Damage),
+                GetController(),
+                this, 
+                {});
+        }
         return;
     }
 
-    DamageActor->TakeDamage(Damage, FDamageEvent(), GetController(), this);
+    DamageActor->TakeDamage(FMath::RandRange(0.0f, Damage), FDamageEvent(), GetController(), this);
 }
 
 void ARocketquakeRiffleWeapon::Multicast_StartShoot_Implementation()

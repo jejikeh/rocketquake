@@ -43,7 +43,7 @@ class ROCKETQUAKE_API ARocketquakeGameModeBase : public AGameModeBase
 public:
     ARocketquakeGameModeBase();
 
-    virtual void StartPlay() override;;
+    virtual void StartPlay() override;
 
     UPROPERTY(EditDefaultsOnly, Category = "Game")
     FGameData GameData;
