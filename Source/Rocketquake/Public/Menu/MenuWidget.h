@@ -6,6 +6,7 @@
 #include "Blueprint/UserWidget.h"
 #include "MenuWidget.generated.h"
 
+class UButton;
 /**
  * 
  */
@@ -16,10 +17,7 @@ class ROCKETQUAKE_API UMenuWidget : public UUserWidget
 
 protected:
     virtual void NativeOnInitialized() override;
-
-    UPROPERTY(meta = (BindWidget))
-    class UButton* StartButton;
-
+    
     UPROPERTY(meta = (BindWidget))
     UButton* ExitButton;
 

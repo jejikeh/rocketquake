@@ -12,10 +12,10 @@ void UMenuWidget::NativeOnInitialized()
 {
     Super::NativeOnInitialized();
 
-    if (StartButton)
-    {
-        StartButton->OnClicked.AddDynamic(this, &UMenuWidget::OnStartButtonClicked);
-    }
+    // if (StartButton)
+    // {
+    //     StartButton->OnClicked.AddDynamic(this, &UMenuWidget::OnStartButtonClicked);
+    // }
 
     if (ExitButton)
     {
