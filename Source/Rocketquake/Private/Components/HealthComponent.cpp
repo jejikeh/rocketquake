@@ -95,6 +95,11 @@ void UHealthComponent::Client_PlayCameraShake_Implementation()
 
 void UHealthComponent::Killed(AController *Killer)
 {
+    if (!bIsTrackShooter)
+    {
+        return;
+    }
+        
     const auto GameMode = Cast<ARocketquakeGameModeBase>(GetWorld()->GetAuthGameMode());
     if (!GameMode)
     {

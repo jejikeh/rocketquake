@@ -43,6 +43,9 @@ public:
 
     FOnHealthChanged OnHealthChanged;
 
+    UPROPERTY(EditDefaultsOnly)
+    bool bIsTrackShooter = true;
+
 protected:
     virtual void BeginPlay() override;
 
