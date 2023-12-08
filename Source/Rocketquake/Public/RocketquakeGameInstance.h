@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "AdvancedFriendsGameInstance.h"
 #include "OnlineSubsystem.h"
 #include "Engine/GameInstance.h"
 #include "Interfaces/OnlineSessionInterface.h"
@@ -12,13 +13,11 @@
  * 
  */
 UCLASS()
-class ROCKETQUAKE_API URocketquakeGameInstance : public UGameInstance
+class ROCKETQUAKE_API URocketquakeGameInstance : public UAdvancedFriendsGameInstance
 {
     GENERATED_BODY()
 
 public:
-    URocketquakeGameInstance();
-    
     FName GetMainMapName() const
     {
         return MainMapName;

@@ -6,10 +6,6 @@
 #include "OnlineSessionSettings.h"
 #include "Kismet/GameplayStatics.h"
 
-URocketquakeGameInstance::URocketquakeGameInstance()
-{
-}
-
 void URocketquakeGameInstance::Init()
 {
     Super::Init();

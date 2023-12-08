@@ -64,7 +64,7 @@ void UMenuWidget::OnHostServerClicked()
         return;
     }
 
-    GameInstance->CreateSession();
+    // GameInstance->CreateSession();
 }
 
 void UMenuWidget::OnExploreServersClicked()
