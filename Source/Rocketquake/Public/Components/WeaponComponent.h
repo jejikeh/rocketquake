@@ -62,7 +62,7 @@ public:
 
 protected:
     virtual void BeginPlay() override;
-
+    
     virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
     
     UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Weapon")
@@ -102,6 +102,20 @@ private:
     UFUNCTION(NetMulticast, Reliable)
     void Multicast_PlayAnimMontage(UAnimMontage* AnimMontage);
     void Multicast_PlayAnimMontage_Implementation(UAnimMontage* AnimMontage);
+
+    // NOTE(jejikeh): Replace this with replicated property
+    UFUNCTION(Server, Reliable)
+    void Server_SetReloadAnimationInProgress(bool InProgress);
+    void Server_SetReloadAnimationInProgress_Implementation(bool InProgress);
+
+    // NOTE(jejikeh): Replace this with replicated property
+    UFUNCTION(Server, Reliable)
+    void Server_SetEquippedAnimationInProgress(bool InProgress);
+    void Server_SetEquippedAnimationInProgress_Implementation(bool InProgress);
+
+    UFUNCTION(Client, Reliable)
+    void Client_DebugPrintAnimationsInformation();
+    void Client_DebugPrintAnimationsInformation_Implementation();
 
     UFUNCTION(Client, Reliable)
     void Client_SetCurrentWeaponUIData(FWeaponUIData WeaponUIData);

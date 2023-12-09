@@ -19,6 +19,26 @@ void UWeaponComponent::StartShoot_Implementation()
 {
     if (!CurrentWeapon || !CanShoot())
     {
+        // Client_DebugPrintAnimationsInformation();
+        if (!CurrentWeapon)
+        {
+            UE_LOG(LogTemp, Error, TEXT("AAAA: Current Weapon is null"))
+        }
+
+        if (!CanShoot())
+        {
+            UE_LOG(LogTemp, Error, TEXT("AAAA: Can Shoot is false"))
+            if (bIsEquippedInProgress)
+            {
+                UE_LOG(LogTemp, Error, TEXT("BBBB: is equipped in progress"))
+            }
+
+            if (bIsReloadInProgress)
+            {
+                UE_LOG(LogTemp, Error, TEXT("BBBB: is reload in progress"))
+            }
+        }
+        
         return;
     }
 
@@ -114,13 +134,26 @@ void UWeaponComponent::BeginPlay()
 {
     Super::BeginPlay();
 
+    const auto Player = Cast<ACharacter>(GetOwner());
+    if (!Player)
+    {
+        return;
+    }
+
+    UE_LOG(LogTemp, Warning, TEXT("bIsEquippedInProgress: %s"), bIsEquippedInProgress ? TEXT("true") : TEXT("false"));
+
+    InitAnimations();
+    EquipWeapon(CurrentWeaponIndex);
+    
+    UE_LOG(LogTemp, Warning, TEXT("GetOwnerRole: %d"), GetOwnerRole())
+    
     if (GetOwner()->HasAuthority())
     {
         SpawnWeapons();
         EquipWeapon(CurrentWeaponIndex);
     }
 
-    InitAnimations();
+    UE_LOG(LogTemp, Warning, TEXT("Weapon Component Begin Play"))
 }
 
 void UWeaponComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
@@ -133,6 +166,27 @@ void UWeaponComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
     }
 
     Weapons.Empty();
+
+    // if (!EquipAnimMontage)
+    // {
+    //     return;
+    // }
+    //
+    // if (const auto EquipNotify = FindNotifyByClass<UEquipFinishedAnimNotify>(EquipAnimMontage))
+    // {
+    //     EquipNotify->OnNotified.RemoveAll(this);
+    // }
+    //
+    // for (const auto WeaponData : WeaponClasses)
+    // {
+    //     auto ReloadNotify = FindNotifyByClass<UReloadAnimNotify>(WeaponData.ReloadAnimMontage);
+    //     if (!ReloadNotify)
+    //     {
+    //         continue;
+    //     }
+    //
+    //     ReloadNotify->OnNotified.RemoveAll(this);
+    // }
 
     Super::EndPlay(EndPlayReason);
 }
@@ -206,6 +260,37 @@ void UWeaponComponent::Multicast_PlayAnimMontage_Implementation(UAnimMontage *An
     Character->PlayAnimMontage(AnimMontage);
 }
 
+void UWeaponComponent::Server_SetReloadAnimationInProgress_Implementation(bool InProgress)
+{
+    bIsReloadInProgress = InProgress;
+}
+
+void UWeaponComponent::Server_SetEquippedAnimationInProgress_Implementation(bool InProgress)
+{
+    UE_LOG(LogTemp, Warning, TEXT("Server_SetEquippedAnimationInProgress_Implementation: FIJEIOFJIO:EHGIULHEF"))
+    bIsEquippedInProgress = InProgress;
+}
+
+void UWeaponComponent::Client_DebugPrintAnimationsInformation_Implementation()
+{
+    if (!CurrentWeapon)
+    {
+        UE_LOG(LogTemp, Error, TEXT("CLIENT_DEBUG: Current Weapon is null"))
+    }
+    
+    UE_LOG(LogTemp, Error, TEXT("CLIENT_DEBUG: Can Shoot is false"))
+    
+    if (bIsEquippedInProgress)
+    {
+        UE_LOG(LogTemp, Error, TEXT("CLIENT_DEBUG: is equipped in progress"))
+    }
+
+    if (bIsReloadInProgress)
+    {
+        UE_LOG(LogTemp, Error, TEXT("CLIENT_DEBUG: is reload in progress"))
+    }
+}
+
 void UWeaponComponent::Client_SetCurrentWeaponUIData_Implementation(FWeaponUIData WeaponUIData)
 {
     CurrentWeaponUIData = WeaponUIData;
@@ -223,13 +308,14 @@ void UWeaponComponent::Client_SetCurrentWeaponAmmoData_Implementation(FAmmoData 
 
 void UWeaponComponent::InitAnimations()
 {
+    UE_LOG(LogTemp, Warning, TEXT("InitAnimations:"))
+    
     if (!EquipAnimMontage)
     {
         return;
     }
 
-    auto EquipNotify = FindNotifyByClass<UEquipFinishedAnimNotify>(EquipAnimMontage);
-    if (EquipNotify)
+    if (const auto EquipNotify = FindNotifyByClass<UEquipFinishedAnimNotify>(EquipAnimMontage))
     {
         EquipNotify->OnNotified.AddUObject(this, &UWeaponComponent::OnEquipFinished);
     }
@@ -248,6 +334,11 @@ void UWeaponComponent::InitAnimations()
 
 void UWeaponComponent::OnEquipFinished(USkeletalMeshComponent *MeshComp)
 {
+    if (GetOwnerRole() != ROLE_AutonomousProxy && GetOwnerRole() != ROLE_Authority)
+    {
+        return;
+    }
+    
     const auto Character = Cast<ACharacter>(GetOwner());
     if (!Character)
     {
@@ -257,11 +348,17 @@ void UWeaponComponent::OnEquipFinished(USkeletalMeshComponent *MeshComp)
     if (Character->GetMesh() == MeshComp)
     {
         bIsEquippedInProgress = false;
+        Server_SetEquippedAnimationInProgress(false);
     }
 }
 
 void UWeaponComponent::OnReloadFinished(USkeletalMeshComponent *MeshComp)
 {
+    if (GetOwnerRole() != ROLE_AutonomousProxy && GetOwnerRole() != ROLE_Authority)
+    {
+        return;
+    }
+    
     const auto Character = Cast<ACharacter>(GetOwner());
     if (!Character)
     {
@@ -271,6 +368,7 @@ void UWeaponComponent::OnReloadFinished(USkeletalMeshComponent *MeshComp)
     if (Character->GetMesh() == MeshComp)
     {
         bIsReloadInProgress = false;
+        Server_SetReloadAnimationInProgress(false);
     }
 }
 
@@ -304,6 +402,8 @@ void UWeaponComponent::ChangeClip()
     CurrentWeapon->StopShoot();
     CurrentWeapon->ChangeClip();
 
+    // NOTE(jejikeh): Client doesnt actually stores AnimationProgress, he is only notifies Server. Is okay?
     bIsReloadInProgress = true;
+    UE_LOG(LogTemp, Warning, TEXT("OGIEJIUGI: Set IsReloadInProgress"));
     Multicast_PlayAnimMontage(CurrentAnimMontage);
 }
