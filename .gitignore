@@ -75,3 +75,11 @@ Plugins/*/Intermediate/*
 DerivedDataCache/*
 
 .DS_Store
+
+# This is for my big assets so i can push to github. If you want download assets find link to a gitlab with LFS
+Content/Environment/*
+Content/Animations/*
+Content/Assets/*
+Content/Audio/*
+Content/Characters/Heroes/*
+Content/Sounds/*
