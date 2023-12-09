@@ -5,6 +5,7 @@
 
 #include "Components/SphereComponent.h"
 #include "Components/WeaponFXComponent.h"
+#include "Engine/DamageEvents.h"
 #include "GameFramework/Character.h"
 #include "GameFramework/ProjectileMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
@@ -42,19 +43,8 @@ void ALauncherProjectile::HandleHit_Implementation(FHitResult Hit)
 {
     ProjectileMovementComponent->StopMovementImmediately();
     RadialForceComponent->FireImpulse();
-
-    // DrawDebugSphere(GetWorld(), GetActorLocation(), RadialForceComponent->Radius, 12, FColor::Red, false, 5.0f);
     WeaponFXComponent->PlayImpactFx(Hit);
-
-    UGameplayStatics::ApplyRadialDamage(
-        GetWorld(),
-        BaseDamage,
-        Hit.Location,
-        RadialForceComponent->Radius,
-        {},
-        {},
-         this);
-
+    
     const auto Player = Cast<APlayerController>(UGameplayStatics::GetPlayerController(GetWorld(), 0));
     if (!Player)
     {
@@ -66,6 +56,38 @@ void ALauncherProjectile::HandleHit_Implementation(FHitResult Hit)
     Destroy();
 }
 
+void ALauncherProjectile::Server_ApplyDamageToActors_Implementation(FVector Locaction)
+{
+    const auto Player = Cast<ACharacter>(GetOwner());
+    if (!Player)
+    {
+        return;
+    }
+    
+    const auto Controller = Cast<APlayerController>(Player->GetController());
+    if (!Controller)
+    {
+        return;
+    }
+
+    TArray<AActor*> OutActors;
+    UKismetSystemLibrary::SphereOverlapActors(
+        GetWorld(),
+        Locaction,
+        RadialForceComponent->Radius,
+        TraceObjectTypes, {}, {}, OutActors);
+
+    for (const auto Actor : OutActors)
+    {
+        if (!Actor)
+        {
+            continue;
+        }
+        
+        Actor->TakeDamage(FMath::RandRange(BaseDamage / 4, BaseDamage), FDamageEvent(), Controller, this);
+    }
+}
+
 void ALauncherProjectile::BeginPlay()
 {
     Super::BeginPlay();
@@ -73,21 +95,20 @@ void ALauncherProjectile::BeginPlay()
     SphereComponent->OnComponentHit.AddDynamic(this, &ALauncherProjectile::OnHit);
     SphereComponent->IgnoreActorWhenMoving(GetOwner(), true);
 
+    TraceObjectTypes.Add(UEngineTypes::ConvertToObjectType(ECollisionChannel::ECC_WorldDynamic));
+    TraceObjectTypes.Add(UEngineTypes::ConvertToObjectType(ECollisionChannel::ECC_Pawn));
+    TraceObjectTypes.Add(UEngineTypes::ConvertToObjectType(ECollisionChannel::ECC_PhysicsBody));
+    
     SetLifeSpan(10.0f);
 }
 
 void ALauncherProjectile::OnHit(UPrimitiveComponent *HitComponent, AActor *OtherActor, UPrimitiveComponent *OtherComp,
     FVector NormalImpulse, const FHitResult &Hit)
 {
+    Server_ApplyDamageToActors(Hit.Location);
+    
     if (HasAuthority())
     {
         HandleHit(Hit);
     }
-    
-    // ProjectileMovementComponent->StopMovementImmediately();
-    // RadialForceComponent->FireImpulse();
-    //
-    // DrawDebugSphere(GetWorld(), GetActorLocation(), RadialForceComponent->Radius, 12, FColor::Red, false, 5.0f);
-    //
-    // Destroy();
 }

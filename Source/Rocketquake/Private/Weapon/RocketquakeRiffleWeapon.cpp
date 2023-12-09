@@ -196,7 +196,7 @@ void ARocketquakeRiffleWeapon::MakeDamage(const FHitResult &HitResult)
                 HitResult.GetActor(),
                 FMath::RandRange(0.0f, Damage),
                 GetController(),
-                this, 
+                this,
                 {});
         }
         return;

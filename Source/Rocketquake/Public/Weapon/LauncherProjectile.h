@@ -51,6 +51,10 @@ public:
     void HandleHit(FHitResult Hit);
     void HandleHit_Implementation(FHitResult Hit);
 
+    UFUNCTION(Server, Reliable)
+    void Server_ApplyDamageToActors(FVector Locaction);
+    void Server_ApplyDamageToActors_Implementation(FVector Locaction);
+
 protected:
     UFUNCTION()
     virtual void BeginPlay() override;
@@ -59,4 +63,7 @@ protected:
     void OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent * OtherComp, FVector NormalImpulse, const FHitResult & Hit);
     
     FVector ShootDirection;
+
+private:
+    TArray<TEnumAsByte<EObjectTypeQuery>> TraceObjectTypes;
 };
